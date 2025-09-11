@@ -1,0 +1,57 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <Deterministic>False</Deterministic>
+    <AssemblyName>Balances.Infraestructura</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="tessdata\eng.traineddata.url" />
+    <None Remove="tessdata\spa.traineddata.url" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\.files\AssemblyInfo.General.cs" Link="Properties\AssemblyInfo.General.cs" />
+    <Compile Include="..\..\.files\AssemblyInfo.Version.cs" Link="Properties\AssemblyInfo.Version.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="tessdata\eng.traineddata.url">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="tessdata\spa.traineddata.url">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Externos.ANT" Version="2.0.404" />
+    <PackageReference Include="Externos.AntecedentesPenales" Version="2.0.404" />
+    <PackageReference Include="Externos.Balances" Version="2.0.404" />
+    <PackageReference Include="Externos.BuroCredito" Version="2.0.404" />
+    <PackageReference Include="Externos.Equifax" Version="2.0.404" />
+    <PackageReference Include="Externos.FiscaliaDelitos" Version="2.0.404" />
+    <PackageReference Include="Externos.FJudicial" Version="2.0.404" />
+    <PackageReference Include="Externos.Garancheck" Version="2.0.404" />
+    <PackageReference Include="Externos.IESS" Version="2.0.404" />
+    <PackageReference Include="Externos.Logica" Version="2.0.404" />
+    <PackageReference Include="Externos.PensionesAlimenticias" Version="2.0.404" />
+    <PackageReference Include="Externos.PredioMunicipio" Version="2.0.404" />
+    <PackageReference Include="Externos.RegistroCivilWS" Version="2.0.404" />
+    <PackageReference Include="Externos.Senescyt" Version="2.0.404" />
+    <PackageReference Include="Externos.SERCOP" Version="2.0.404" />
+    <PackageReference Include="Externos.SRi" Version="2.0.404" />
+    <PackageReference Include="Externos.SuperBancos" Version="2.0.404" />
+    <PackageReference Include="Externos.UAFE" Version="2.0.404" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.72" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="RestSharp" Version="106.15.0" />
+  </ItemGroup>
+
+</Project>

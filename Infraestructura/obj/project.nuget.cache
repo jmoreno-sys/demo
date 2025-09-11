@@ -1,0 +1,217 @@
+{
+  "version": 2,
+  "dgSpecHash": "aM5pkioq564=",
+  "success": false,
+  "projectFilePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\jorge\\.nuget\\packages\\htmlagilitypack\\1.11.72\\htmlagilitypack.1.11.72.nupkg.sha512",
+    "C:\\Users\\jorge\\.nuget\\packages\\microsoft.extensions.configuration.abstractions\\9.0.0\\microsoft.extensions.configuration.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\jorge\\.nuget\\packages\\microsoft.extensions.configuration.binder\\9.0.0\\microsoft.extensions.configuration.binder.9.0.0.nupkg.sha512",
+    "C:\\Users\\jorge\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\9.0.0\\microsoft.extensions.dependencyinjection.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\jorge\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\9.0.0\\microsoft.extensions.logging.abstractions.9.0.0.nupkg.sha512",
+    "C:\\Users\\jorge\\.nuget\\packages\\microsoft.extensions.primitives\\9.0.0\\microsoft.extensions.primitives.9.0.0.nupkg.sha512",
+    "C:\\Users\\jorge\\.nuget\\packages\\newtonsoft.json\\13.0.3\\newtonsoft.json.13.0.3.nupkg.sha512",
+    "C:\\Users\\jorge\\.nuget\\packages\\restsharp\\106.15.0\\restsharp.106.15.0.nupkg.sha512",
+    "C:\\Users\\jorge\\.nuget\\packages\\system.diagnostics.diagnosticsource\\9.0.0\\system.diagnostics.diagnosticsource.9.0.0.nupkg.sha512"
+  ],
+  "logs": [
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.PredioMunicipio. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.PredioMunicipio",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.Logica. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.Logica",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.IESS. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.IESS",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.Equifax. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.Equifax",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.AntecedentesPenales. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.AntecedentesPenales",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.BuroCredito. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.BuroCredito",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.UAFE. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.UAFE",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.FJudicial. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.FJudicial",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.PensionesAlimenticias. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.PensionesAlimenticias",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.Garancheck. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.Garancheck",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.Senescyt. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.Senescyt",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.SuperBancos. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.SuperBancos",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.FiscaliaDelitos. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.FiscaliaDelitos",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.Balances. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.Balances",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.RegistroCivilWS. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.RegistroCivilWS",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.SERCOP. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.SERCOP",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.SRi. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.SRi",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    },
+    {
+      "code": "NU1101",
+      "level": "Error",
+      "message": "No se encuentra el paquete Externos.ANT. No existe ningún paquete con este id. en los orígenes: C:\\Program Files\\dotnet\\library-packs, Microsoft Visual Studio Offline Packages, nuget.org",
+      "projectPath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "filePath": "C:\\FUENTES\\Balances\\src\\Infraestructura\\Infraestructura.csproj",
+      "libraryId": "Externos.ANT",
+      "targetGraphs": [
+        "net8.0"
+      ]
+    }
+  ]
+}
