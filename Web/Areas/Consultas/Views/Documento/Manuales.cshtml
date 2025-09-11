@@ -1,0 +1,149 @@
+﻿@{
+    ViewData["Title"] = "Manuales";
+    var url = Url.Action("Manual", "Documento", new { Area = "Consultas" });
+}
+
+<section id="content">
+    <div class="container-fluid px-xl-5 px-lg-5 px-md-1 px-sm-0">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb purple lighten-4 m-0">
+                        <li class="breadcrumb-item"><a asp-area="Consultas" asp-controller="Principal" asp-action="Inicio">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Manuales</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pt-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <span class="pl-2 my-auto">
+                        <i class="fas fa-book fa-lg mr-2"></i>
+                        Manuales de Usuario
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row pb-2">
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card">
+                                <div class="card-body" style="height: 150px">
+                                    <h5 class="card-title font-weight-bold text-center">Manual de Usuario</h5>
+                                    <p class="card-text text-justify">Manual de usuario sobre las funciones de consultas</p>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <a href="@url?nombreDocumento=Plataforma360_ManualUsuario.docx" download="Plataforma360_ManualUsuario.docx" class="btn btn-info d-inline-flex"><i class="fas fa-file-word mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Word</span></a>                                   
+                                    <a href="@url?nombreDocumento=Plataforma360_ManualUsuario.pdf" download="Plataforma360_ManualUsuario.pdf" class="btn btn-danger d-inline-flex"><i class="fas fa-file-pdf mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">PDF</span></a>                                   
+                                </div>
+                            </div>
+                        </div>
+                        @*<div class="col-lg-4 col-md-6 col-sm-12">
+                                <div class="card">
+                                    <div class="card-body" style="height: 150px">
+                                        <h5 class="card-title font-weight-bold text-center">Manual de Administrador</h5>
+                                        <p class="card-text text-justify">Manual de usuario sobre funciones de administración de usuarios, empresas y planes de consultas</p>
+                                    </div>
+                                    <div class="card-footer text-center">
+                                        <a href="~/docs/Plataforma360_ManualAdministrador.docx" download="Plataforma360_ManualAdministrador.docx" class="btn btn-info d-inline-flex"><i class="fas fa-file-word mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Word</span></a>
+                                        <a href="~/docs/Plataforma360_ManualAdministrador.pdf" download="Plataforma360_ManualAdministrador.pdf" class="btn btn-danger d-inline-flex"><i class="fas fa-file-arrow-down mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">PDF</span></a>
+                                    </div>
+                                </div>
+                            </div>*@
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card">
+                                <div class="card-body" style="height: 150px">
+                                    <h5 class="card-title font-weight-bold text-center">Manual y Catálogo Web Service</h5>
+                                    <p class="card-text text-justify">Manual de usuario y catálogo del Web Service</p>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <a href="@url?nombreDocumento=Plataforma360_CatalogoWebService.docx" download="Plataforma360_CatálogoWebService.docx" class="btn btn-info d-inline-flex"><i class="fas fa-file-word mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Word</span></a>                                   
+                                    <a href="@url?nombreDocumento=Plataforma360_CatalogoWebService.pdf" download="Plataforma360_CatálogoWebService.pdf" class="btn btn-danger d-inline-flex"><i class="fas fa-file-arrow-down mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">PDF</span></a>
+                                    <a href="@url?nombreDocumento=Plataforma360_EjemploRespuesta.json" download="Plataforma360_EjemploRespuesta.json" class="btn btn-secondary d-inline-flex"><i class="fas fa-file-arrow-down mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">JSON</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pt-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    <span class="pl-2 my-auto">
+                        <i class="fas fa-bookmark fa-lg mr-2"></i>
+                        Glosarios & Diccionarios
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row pb-2">
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card">
+                                <div class="card-body" style="height: 150px">
+                                    <h5 class="card-title font-weight-bold text-center">Glosario de Políticas - Buró</h5>
+                                    <p class="card-text text-justify">Se describen las políticas que forman parte del modelo de evaluación de riesgo</p>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <a href="@url?nombreDocumento=Plataforma360_GlosarioPoliticas.docx" download="Plataforma360_GlosarioPolíticas.docx" class="btn btn-info d-inline-flex"><i class="fas fa-file-word mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Word</span></a>
+                                    <a href="@url?nombreDocumento=Plataforma360_GlosarioPoliticas.pdf" download="Plataforma360_GlosarioPolíticas.pdf" class="btn btn-danger d-inline-flex"><i class="fas fa-file-pdf mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">PDF</span></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card">
+                                <div class="card-body" style="height: 150px">
+                                    <h5 class="card-title font-weight-bold text-center">Glosario de Políticas - Fuentes Externas</h5>
+                                    <p class="card-text text-justify">Se describen las políticas de las Fuentes Externas que forman parte del modelo de evaluación de riesgo</p>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <a href="@url?nombreDocumento=Plataforma360_GlosarioPoliticas_FuentesExternas.docx" download="Plataforma360_GlosarioPolíticas.docx" class="btn btn-info d-inline-flex"><i class="fas fa-file-word mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Word</span></a>
+                                    <a href="@url?nombreDocumento=Plataforma360_GlosarioPoliticas_FuentesExternas.pdf" download="Plataforma360_GlosarioPolíticas.pdf" class="btn btn-danger d-inline-flex"><i class="fas fa-file-pdf mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">PDF</span></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card">
+                                <div class="card-body" style="height: 150px">
+                                    <h5 class="card-title font-weight-bold text-center">Diccionario de Datos</h5>
+                                    <p class="card-text text-justify">Se describen los campos de las fuentes de información</p>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <a href="@url?nombreDocumento=Plataforma360_DiccionarioDatos.docx" download="Plataforma360_DiccionarioDatos.docx" class="btn btn-info d-inline-flex"><i class="fas fa-file-word mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Word</span></a>
+                                    <a href="@url?nombreDocumento=Plataforma360_DiccionarioDatos.pdf" download="Plataforma360_DiccionarioDatos.pdf" class="btn btn-danger d-inline-flex"><i class="fas fa-file-arrow-down mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">PDF</span></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card">
+                                <div class="card-body" style="height: 150px">
+                                    <h5 class="card-title font-weight-bold text-center">Formato Autorización de Titular</h5>
+                                    <p class="card-text text-justify">Formato de Autorización de Titular</p>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <a href="@url?nombreDocumento=Plataforma360_FormatoAutorizacionTitular.docx" download="Plataforma360_FormatoAutorizacionTitular.docx" class="btn btn-info d-inline-flex"><i class="fas fa-file-word mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Word</span></a>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4 col-md-6 col-sm-12">
+                            <div class="card">
+                                <div class="card-body" style="height: 150px">
+                                    <h5 class="card-title font-weight-bold text-center">Perfiles del Usuario</h5>
+                                    <p class="card-text text-justify">Se describen los perfiles de la plataforma</p>
+                                </div>
+                                <div class="card-footer text-center">
+                                    <a href="@url?nombreDocumento=Plataforma360_RolesUsuario.docx" download="Plataforma360_RolesUsuario.docx" class="btn btn-info d-inline-flex"><i class="fas fa-file-word mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Word</span></a>
+                                    <a href="@url?nombreDocumento=Plataforma360_RolesUsuario.pdf" download="Plataforma360_RolesUsuario.pdf" class="btn btn-danger d-inline-flex"><i class="fas fa-file-arrow-down mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">PDF</span></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

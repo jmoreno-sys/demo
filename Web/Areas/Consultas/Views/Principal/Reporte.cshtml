@@ -1,0 +1,1452 @@
+﻿@{
+    var sistemaPredios = Enum.GetValues(typeof(Dominio.Tipos.Predios)).Cast<Dominio.Tipos.Predios>();
+    var lstPredios = sistemaPredios.Where(m => m != Dominio.Tipos.Predios.Desconocido && m != Dominio.Tipos.Predios.Daule).Select(m => new SelectListItem { Text = m.GetEnumDescription(), Value = ((short)m).ToString() }).ToList();
+}
+<div class="row">
+    <div class="col">
+        <div class="card">
+            <div class="card-body pt-0">
+                <ul class="nav nav-tabs mb-3 d-print-none" id="ex1" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active font-weight-bold px-3 px-lg-4"
+                           id="tab-sri"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-sri"
+                           role="tab"
+                           aria-controls="tab-cont-sri"
+                           aria-selected="true"
+                           data-tippy-content="SRI"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-file-invoice-dollar fa-xl"></i></span>
+                        </a>
+
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-civil"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-civil"
+                           role="tab"
+                           aria-controls="tab-cont-civil"
+                           aria-selected="false"
+                           data-tippy-content="Civil"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-address-card"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-address-card fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-societario"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-societario"
+                           role="tab"
+                           aria-controls="tab-cont-societario"
+                           aria-selected="false"
+                           data-tippy-content="Societario"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-chart-column"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-chart-column fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-iess"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-iess"
+                           role="tab"
+                           aria-controls="tab-cont-iess"
+                           aria-selected="false"
+                           data-tippy-content="IESS"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-hands-holding"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-hands-holding fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-legal"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-legal"
+                           role="tab"
+                           aria-controls="tab-cont-legal"
+                           aria-selected="false"
+                           data-tippy-content="Legal"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-gavel"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-gavel fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-ant"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-ant"
+                           role="tab"
+                           aria-controls="tab-cont-ant"
+                           aria-selected="false"
+                           data-tippy-content="ANT"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-car"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-car fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-senescyt"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-senescyt"
+                           role="tab"
+                           aria-controls="tab-cont-senescyt"
+                           aria-selected="false"
+                           data-tippy-content="Estudios"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-graduation-cap"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-graduation-cap fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-sercop"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-sercop"
+                           role="tab"
+                           aria-controls="tab-cont-sercop"
+                           aria-selected="false"
+                           data-tippy-content="SERCOP"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-handshake"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-handshake fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-pensionalimenticia"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-pensionalimenticia"
+                           role="tab"
+                           aria-controls="tab-cont-pensionalimenticia"
+                           aria-selected="false"
+                           data-tippy-content="Pensiones Alimenticias"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fas fa-baby-carriage"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-baby-carriage fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-superbancos"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-superbancos"
+                           role="tab"
+                           aria-controls="tab-cont-superbancos"
+                           aria-selected="false"
+                           data-tippy-content="SuperIntendencia de Bancos"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fas fa-building-columns"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-building-columns fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-antecedentes"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-antecedentes"
+                           role="tab"
+                           aria-controls="tab-cont-antecedentes"
+                           aria-selected="false"
+                           data-tippy-content="Ministerio del Interior"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fas fa-handcuffs"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-handcuffs fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-predios"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-predios"
+                           role="tab"
+                           aria-controls="tab-cont-predios"
+                           aria-selected="false"
+                           data-tippy-content="Predios"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fas fa-house-user"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-house-user fa-xl"></i></span>
+                        </a>
+                    </li>
+                    @*  <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                        id="tab-fiscalia"
+                        data-mdb-toggle="tab"
+                        href="#tab-cont-fiscalia"
+                        role="tab"
+                        aria-controls="tab-cont-fiscalia"
+                        aria-selected="false"
+                        data-tippy-content="Noticias del Delito"
+                        data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fas fa-scale-balanced"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-scale-balanced fa-xl"></i></span>
+                        </a>
+                    </li> *@
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-uafe"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-uafe"
+                           role="tab"
+                           aria-controls="tab-cont-uafe"
+                           aria-selected="false"
+                           data-tippy-content="UAFE"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fas fa-magnifying-glass-dollar"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-magnifying-glass-dollar fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-buro"
+                           data-mdb-toggle="tab"
+                           href="#tab-cont-buro"
+                           role="tab"
+                           aria-controls="tab-cont-buro"
+                           aria-selected="false"
+                           data-tippy-content="Buró de Crédito"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-credit-card"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-credit-card fa-xl"></i></span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="tab-evaluacion"
+                           data-toggle="tab"
+                           href="#tab-cont-evaluacion"
+                           role="tab"
+                           aria-controls="tab-cont-evaluacion"
+                           aria-selected="false"
+                           data-tippy-content="Evaluación de Riesgo"
+                           data-tippy-placement="top">
+                            <span class="d-block d-lg-none"><i class="fa-solid fa-list-check"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block"><i class="fa-solid fa-list-check fa-xl"></i></span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <!-- Información General -->
+                    <div class="tab-pane fade show active d-print-inline pagebreak" id="tab-cont-sri" role="tabpanel" aria-labelledby="tab-sri">
+                        <div class="progress" id="divBarraSRI" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteSri"></div>
+                    </div>
+                    <!-- Ciudadano -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-civil" role="tabpanel" aria-labelledby="tab-civil">
+                        <div class="progress" id="divBarraCivil" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteCivil"></div>
+                    </div>
+                    <!-- Índices -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-societario" role="tabpanel" aria-labelledby="tab-societario">
+                        <div class="progress" id="divBarraBalances" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteBalance"></div>
+                    </div>
+                    <!-- IESS -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-iess" role="tabpanel" aria-labelledby="tab-iess">
+                        <div class="progress" id="divBarraIess" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteIess"></div>
+                        <div id="divFuenteHistorialIess1"></div>
+                    </div>
+                    <!-- Judicial -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-legal" role="tabpanel" aria-labelledby="tab-legal">
+                        <partial name="~/Areas/Consultas/Views/Shared/Fuentes/_FuenteFJudicial.cshtml" model="new JudicialViewModel()" />
+                       @*  <div class="progress" id="divBarraJudicial" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteJudicial"></div> *@
+                    </div>
+                    <!-- ANT -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-ant" role="tabpanel" aria-labelledby="tab-ant">
+                        <div class="progress" id="divBarraANT" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteANT"></div>
+                    </div>
+                    <!-- Senescyt -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-senescyt" role="tabpanel" aria-labelledby="tab-senescyt">
+                        <div class="progress" id="divBarraSenescyt" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteSenescyt"></div>
+                    </div>
+                    <!-- SERCOP -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-sercop" role="tabpanel" aria-labelledby="tab-sercop">
+                        <div class="progress" id="divBarraSercop" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteSERCOP"></div>
+                    </div>
+                    <!-- Pensiones Alimenticias -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-pensionalimenticia" role="tabpanel" aria-labelledby="tab-pensionalimenticia">
+                        <div class="progress" id="divBarraPensionAlimenticia" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuentePensionAlimenticia"></div>
+                    </div>
+                    <!-- Super de Bancos -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-superbancos" role="tabpanel" aria-labelledby="tab-superbancos">
+                        @*<div class="row pt-2" id="divBusquedaSuperBancos" style="display: none">
+                        <div class="col">
+                        <div class="card">
+                        <div class="card-header">
+                        <div class="row">
+                        <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                        <img src="~/images/iconos/superBancosEmpresa.svg" alt="" width="40" height="40">
+                        <span class="pl-2 my-auto">
+                        Estado de Titulares de Cuenta Corriente
+                        <span class="badge badge-info pl-1"><a href="https://appweb.superbancos.gob.ec/ssl/registro/registro.jsf?service=https://appweb.superbancos.gob.ec:443/ssl" target="_blank" data-tippy-content="Página Oficial Certificado de SuperIntendencia de Bancos">Página Oficial</a></span>
+                        </span>
+                        </div>
+                        <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                        <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnBuscarSuperBancosNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                        </div>
+                        </div>
+                        </div>
+                        <div class="card-body">
+                        <div class="row">
+                        <div class="col">
+                        <div class="alert alert-warning" role="alert">
+                        Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                        </div>*@
+
+                        @* SuperBancos Cedula *@
+                        <div class="row pt-2" id="divBusquedaSuperBancosCedula" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-7 col-md-12 col-sm-12 col-12 d-inline-flex">
+                                                <img src="~/images/iconos/superBancosCedula.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Estado de Titulares de Cuenta Corriente <b>(Cédula Rep. Legal)</b>
+                                                    <span class="badge badge-info pl-1"><a href="https://appweb.superbancos.gob.ec/ssl/registro/registro.jsf?service=https://appweb.superbancos.gob.ec:443/ssl" target="_blank" data-tippy-content="Página Oficial Certificado de SuperIntendencia de Bancos" data-tippy-placement="top">Página Oficial</a></span>
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-5 col-md-12 col-sm-12 col-12 d-inline-flex justify-content-end">
+                                                <div id="divFechaCedulacion" class="input-group d-inline-flex justify-content-end mr-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text font-weight-bold h-100" style="font-size: 14px; width:100%;"><span class="mr-1"><i class="fas fa-info-circle text-primary"></i></span>Fecha Cedulación: </div>
+                                                    </div>
+                                                    <input style="font-size: 14px;" type="text" id="inputFechaCedulacion" class="form-control col-lg-4 col-md-4 col-sm-12 datepicker" data-provide="datepicker" data-date-format="dd/mm/yyyy" pattern="\d{1,2}/\d{1,2}/\d{4}" autocomplete="off" maxlength="10">
+                                                </div>
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex align-self-center" id="btnBuscarSuperBancosCedulaNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraSuperBancosCedula" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteSuperBancosCedula"></div>
+
+                        @* SuperBancos Ruc Natural *@
+                        <div class="row pt-2" id="divBusquedaSuperBancosRucNatural" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                <img src="~/images/iconos/superBancosNatural.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Estado de Titulares de Cuenta Corriente <b>(RUC Natural Rep. Legal)</b>
+                                                    <span class="badge badge-info pl-1"><a href="https://appweb.superbancos.gob.ec/ssl/registro/registro.jsf?service=https://appweb.superbancos.gob.ec:443/ssl" target="_blank" data-tippy-content="Página Oficial Certificado de SuperIntendencia de Bancos" data-tippy-placement="top">Página Oficial</a></span>
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex align-self-center" id="btnBuscarSuperBancosNaturalNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraSuperBancosNatural" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteSuperBancosNatural"></div>
+
+                        @* SuperBancos Ruc Juridico *@
+                        <div class="row pt-2" id="divBusquedaSuperBancosRucJuridico" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                <img src="~/images/iconos/superBancosEmpresa.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Estado de Titulares de Cuenta Corriente <b>(Empresa)</b>
+                                                    <span class="badge badge-info pl-1"><a href="https://appweb.superbancos.gob.ec/ssl/registro/registro.jsf?service=https://appweb.superbancos.gob.ec:443/ssl" target="_blank" data-tippy-content="Página Oficial Certificado de SuperIntendencia de Bancos" data-tippy-placement="top">Página Oficial</a></span>
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex align-self-center" id="btnBuscarSuperBancosEmpresaNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraSuperBancosEmpresa" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteSuperBancosEmpresa"></div>
+
+                        @*  <div class="progress" id="divBarraSuperBancos" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divSuperBancosEmpresaReintento"></div> *@
+                    </div>
+                    <!-- Antecedentes Penales -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-antecedentes" role="tabpanel" aria-labelledby="tab-antecedentes">
+                        <div class="row pt-2" id="divBusquedaAntecedentes" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                <img src="~/images/iconos/antecedentes.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Antecedentes Penales
+                                                    <span class="badge badge-info pl-1"><a href="https://certificados.ministeriodelinterior.gob.ec/gestorcertificados/antecedentes/" target="_blank" data-tippy-content="Página Oficial Certificado Antecedentes Penales" data-tippy-placement="top">Página Oficial</a></span>
+                                                </span>
+                                            </div>
+                                            @* <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnBuscarAntecedentesNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div> *@
+                                        </div>
+                                    </div>
+                                    @* <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div> *@
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                                <div class="input-group">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text font-weight-bold" style="font-size: 14px;"><span class="mr-1"><i class="fas fa-info-circle text-primary"></i></span>Antecedentes Penales: </div>
+                                                    </div>
+                                                    <select class="form-control col-lg-4 col-md-4 col-sm-12" id="selectAntecedentesPenales">
+                                                        <option value=false>NO</option>
+                                                        <option value=true>SI</option>
+                                                    </select>
+                                                    <div class="input-group-prepend">
+                                                        <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex align-items-center" id="btnGuardarAntecedentes"><i class="fa-solid fa-floppy-disk my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">GUARDAR</span></button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraAntecedentes" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteAntecedentes"></div>
+                        <!-- Certificado Fuerzas Armadas -->
+                        <br />
+                        <div class="row pt-2" id="divBusquedaFuerzasArmadas" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                <img src="~/images/iconos/certificadoFuerzaArmada.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Fuerzas Armadas
+                                                    <span class="badge badge-info pl-1"><a href="https://sidehu.midena.gob.ec/certificados/nofa.action" target="_blank" data-tippy-content="Página Oficial Certificado Fuerzas Armadas" data-tippy-placement="top">Página Oficial</a></span>
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnBuscarFuerzasArmadasNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraFuerzasArmadas" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteFuerzasArmadas"></div>
+                        <!-- Certificado DeNoBaja -->
+                        <br />
+                        <div class="row pt-2" id="divBusquedaDeNoBaja" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                <img src="~/images/iconos/deNoBaja.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Certificado De No Baja
+                                                    <span class="badge badge-info pl-1"><a href="https://certificados.ministeriodelinterior.gob.ec/gestorcertificados/dnobaja/" target="_blank" data-tippy-content="Página Oficial Certificado De No Baja" data-tippy-placement="top">Página Oficial</a></span>
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnBuscarDeNoBajaNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraDeNoBaja" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+
+                        <div id="divFuenteDeNoBaja"></div>
+                    </div>
+                    <!-- Predios -->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-predios" role="tabpanel" aria-labelledby="tab-predios">
+                        <div class="row pt-2" id="divBusquedaPredios" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-6 col-md-12 col-sm-12 d-inline-flex">
+                                                <img src="~/images/iconos/predios.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Predios Personales
+                                                    <span class="badge badge-info pl-1"><a href="https://pam.quito.gob.ec/ConsultadeImpuestos/" target="_blank" data-tippy-content="Página Oficial Consulta Obligaciones Municipales" data-tippy-placement="top">Página Oficial</a></span>
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-6 col-md-12 col-sm-12 d-inline-flex justify-content-end">
+                                                <div class="input-group d-inline-flex justify-content-end mr-2">
+                                                    <div class="input-group-prepend">
+                                                        <div class="input-group-text font-weight-bold" style="font-size: 14px;"><span class="mr-1"><i class="fas fa-info-circle text-primary"></i></span>Seleccionar Cantón: </div>
+                                                    </div>
+                                                    <select class="form-control col-lg-4 col-md-4 col-sm-12" id="selectFuentePredios" asp-items="@lstPredios"><option value="" selected disabled hidden>Seleccionar..</option></select>
+                                                </div>
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnBuscarPrediosNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraPredios" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuentePredios"></div>
+                    </div>
+                    <!-- Fiscalía Delitos-->
+                    @*  <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-fiscalia" role="tabpanel" aria-labelledby="tab-fiscalia">
+                        <div class="row pt-2" id="divBusquedaFiscalia" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                <img src="~/images/iconos/fiscaliaDelitos.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Información Fiscalía Delitos
+                                                    <span class="badge badge-info pl-1"><a href="https://www.fiscalia.gob.ec/consulta-de-actos-administrativos/" target="_blank" data-tippy-content="Página Oficial Fiscalía Delitos" data-tippy-placement="top">Página Oficial</a></span>
+                                                    <span class="badge badge-warning pl-1"> Temporalmente Inactiva</span>
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnBuscarFiscaliaNuevo" disabled><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información. Esta consulta puede tardar en resolver la petición.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraFiscalia" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteFiscaliaDelitos"></div>
+                    </div> *@
+                    <!-- UAFE-->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-uafe" role="tabpanel" aria-labelledby="tab-uafe">
+                        <div class="row pt-2" id="divBusquedaUafe" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                <img src="~/images/iconos/uafe.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Unidad de Análisis Financiero y Económico
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnBuscarUafeNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div class="alert alert-warning" role="alert">
+                                                    Presione el botón <b>CONSULTAR</b> para iniciar el procesamiento de la fuente de información.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraUafe" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteUafe"></div>
+                    </div>
+                    <!-- Buró de Crédito-->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-buro" role="tabpanel" aria-labelledby="tab-buro">
+                        <div class="row pt-2" id="divBusquedaBuroCredito" style="display: none">
+                            <div class="col">
+                                <div class="card">
+                                    <div class="card-header">
+                                        <div class="row">
+                                            <div class="col-lg-8 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                <img src="~/images/iconos/buroCredito.svg" alt="" width="40" height="40">
+                                                <span class="pl-2 my-auto">
+                                                    Información Buró de Crédito
+                                                </span>
+                                            </div>
+                                            <div class="col-lg-4 col-md-2 col-sm-4 col-3 d-flex justify-content-end">
+                                                <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex d-none" id="btnBuscarBuroCreditoNuevo"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR BURÓ CRÉDITO</span></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col">
+                                                <div id="divHabilitarBuro" class="alert alert-primary mb-0" role="alert">
+                                                    La empresa no cuenta con un plan contratado para consultar el <b>BURÓ DE CRÉDITO</b>.
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraBuroCredito" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Buscando...</div>
+                        </div>
+                        <div id="divFuenteBuroCredito"></div>
+                        <div id="divFuenteHistorialIess" hidden>
+                            <div class="row animate__animated animate__fadeInUp">
+                                <div class="col">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <div class="row">
+                                                <div class="col-lg-6 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                    <img src="~/images/iconos/seguro.svg" alt="" width="40" height="40">
+                                                    <span class="pl-2 my-auto">
+                                                        Ver mas información
+                                                        @* <span class="badge badge-info pl-1"><a href="#" target="_blank" data-tippy-content="">Ver mas</a></span> *@
+                                                    </span>
+                                                </div>
+                                               @*  <div class="col-lg-1 col-md-2 col-sm-4 col-3">
+                                                    <button type="button" class="btn btn-primary-custom" id="btnBuscarHistorialIess"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-none d-md-block">CONSULTAR HISTORIAL</span></button>
+                                                </div> *@
+
+                                                <div class="col-6 p-0 d-flex justify-content-end">
+                                                    <button type="button" class="btn btn-primary-custom btn-primary-custom d-inline-flex my-1" id="btnBuscarHistorialIess"><i class="fa-solid fa-magnifying-glass-plus my-auto mr-1"></i><span class="d-none d-sm-block my-auto">CONSULTAR</span></button>
+                                                    @* <button type="button" class="btn btn-primary-custom" id="btnBuscarHistorialIess"><span class="d-none d-sm-none d-md-block">CONSULTAR HISTORIAL</span></button> *@
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="row">
+                                                <div class="col-lg-12 col-md-9 col-sm-12">
+                                                    <div id="divHistorialIess"></div>
+                                                </div>
+                                            </div>
+                                            <hr />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Evaluación de riesgo-->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="tab-cont-evaluacion" role="tabpanel" aria-labelledby="tab-evaluacion">
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-8 col-sm-8 col-9 d-inline-flex">
+                                        <img src="~/images/iconos/listCheck.svg" alt="" width="40" height="40">
+                                        <span class="pl-2 my-auto">
+                                            Evaluación Riesgo
+                                        </span>
+                                    </div>
+                                    <div class="col-lg-6 col-md-4  col-sm-4 col-3 text-right">
+                                        <button type="button" class="btn btnEvaluar btn-primary-custom d-inline-flex" id="btnEvaluar"><i class="fa-solid fa-list-check my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Evaluar</span></button>
+                                        <button type="button" id="btnImprimirSolicitudCredito" class="btn btn-primary-custom d-inline-flex btnImprimirSolicitudCredito" disabled><i class="fa-solid fa-print my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-inline">Imprimir solicitud de crédito</span></button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body" id="cardBodyCalificacion">
+                                <div id="divFuenteCalificacion"></div>
+                            </div>
+                        </div>
+                        <div class="progress" id="divBarraCalificacion" style="height:1rem;">
+                            <div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">Procesando...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--PARAMETROS INDUMOT-->
+<div class="modal fade" id="modalBuroIndumot" tabindex="-1" role="dialog" aria-labelledby="modalBuroIndumotLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Consulta Buró Modelo Experto Indumot</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            <form id="formBuroIndumot" method="post">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Identificación Conyuge</label>
+                                        <input id="inputIdentificacionConyugeIndumot" class="form-control form-control-sm input-integer input-border-radius" autocomplete="off">
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Identificación Garante</label>
+                                        <input id="inputIdentificacionGaranteIndumot" class="form-control form-control-sm input-integer input-border-radius" autocomplete="off">
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Tipo Producto</label>
+                                        <input id="inputTipoProductoIndumot" class="form-control form-control-sm required input-border-radius" autocomplete="off">
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Ingresos</label>
+                                        <input id="inputIngresosIndumot" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" value="0">
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Resta Gasto Financiero</label>
+                                        <input id="inputGastosIndumot" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" value="0">
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Plazo</label>
+                                        <input id="inputPlazoIndumot" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Monto</label>
+                                        <input id="inputMontoIndumot" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Valor Entrada</label>
+                                        <input id="inputValorEntradaIndumot" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off" value="0">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formBuroIndumot" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--PARAMETROS BANCO CAPITAL-->
+<div class="modal fade" id="modalBuroBCapital" tabindex="-1" role="dialog" aria-labelledby="modalBuroBCapitalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Consulta Buró Modelo Banco Capital</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            <div class="alert alert-info p-2 mb-1" role="alert">
+                                <h6 class="info-note"><b>LIVIANOS C: </b>Monto Mínimo: $ 5.000,00 - Monto Máximo: $ 65.000,00 - Plazo Min: 12- Plazo Max: 72</h6>
+                                <br />
+                                <h6 class="info-note"><b>LIVIANOS M: </b>Monto Mínimo: $ 5.000,00 - Monto Máximo: $ 65.000,00 - Plazo Min: 12- Plazo Max: 72</h6>
+                                <br />
+                                <h6 class="info-note"><b>TRABAJO M: </b>Monto Mínimo: $ 5.000,00 - Monto Máximo: $ 90.000,00 - Plazo Min: 12- Plazo Max: 72</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <form id="formBuroBCapital" method="post">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Tipo de Préstamo</label>
+                                        <select id="selectTipoBC" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente1090105244001.TipoPrestamoBCapitalAval.LivianosC)">Livianos C</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente1090105244001.TipoPrestamoBCapitalAval.LivianosM)">Livianos M</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente1090105244001.TipoPrestamoBCapitalAval.TrabajoM)">Trabajo M</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Identificación conyuge</label>
+                                        <input id="inputIdentificacionConyugeBC" class="form-control form-control-sm input-border-radius" maxlength="10" autocomplete="off">
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Ingresos</label>
+                                        <input id="inputIngresosBC" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Gastos</label>
+                                        <input id="inputGastosBC" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Monto Solicitado</label>
+                                        <input id="inputMontoBC" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Meses Plazo</label>
+                                        <input id="inputPlazoBC" class="form-control form-control-sm input-integer required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12 d-flex align-items-center">
+                                        <div class="custom-control custom-switch">
+                                            <input type="checkbox" class="custom-control-input" id="switchPropiedadesBC">
+                                            <label class="custom-control-label" for="switchPropiedadesBC">Propiedades</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Meses Experiencia Actividad</label>
+                                        <input id="inputMesesExperienciaActividadBC" class="form-control form-control-sm input-integer required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formBuroBCapital" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--PARAMETROS COOPERATIVAS-->
+<div class="modal fade" id="modalBuroCooperativas" tabindex="-1" role="dialog" aria-labelledby="modalBuroCooperativasLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Consulta Buró Modelo Cooperativas 4 y 5</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            <div class="alert alert-info p-2 mb-1" role="alert">
+                                <h6 class="info-note"><b>CONSUMO: </b>Monto Mínimo: $ 110,00 - Monto Máximo: $ 120.000,00 - Plazo Max: 120</h6>
+                                <br />
+                                <h6 class="info-note"><b>MICROCRÉDITO: </b>Monto Mínimo: $ 80,00 - Monto Máximo: $ 120.000,00 - Plazo Max: 120</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <form id="formBuroCooperativas" method="post">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Tipo de Préstamo</label>
+                                        <select id="selectTipoCoac" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                            <option value="@((short)Dominio.Tipos.TipoPrestamoCooperativasAval.Consumo)">Consumo</option>
+                                            <option value="@((short)Dominio.Tipos.TipoPrestamoCooperativasAval.Microcredito)">Microcrédito</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Ingresos</label>
+                                        <input id="inputIngresosCoac" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Gastos</label>
+                                        <input id="inputGastosCoac" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Monto Solicitado</label>
+                                        <input id="inputMontoCoac" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Meses Plazo</label>
+                                        <input id="inputPlazoCoac" class="form-control form-control-sm input-integer required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formBuroCooperativas" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--PARAMETROS BANCO LITORAL-->
+<div class="modal fade" id="modalModeloBLitoral" tabindex="-1" role="dialog" aria-labelledby="modalModeloBLitoralLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Buró de Crédito</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formModeloBLitoral" method="post">
+                        <div class="row">
+                            <div class="col">
+                                <h6>¿Seleccionar modelo de Buró de Crédito?</h6>
+                                <select id="selectModeloBuroBLitoral" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoBuroModelo.ModeloCovid360)">Covid360</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoBuroModelo.ModeloAutomotriz)">Automotriz</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoBuroModelo.ModeloMicrofinanzas)">Microfinanzas</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formModeloBLitoral" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalBuroBLitoral" tabindex="-1" role="dialog" aria-labelledby="modalBuroBLitoralLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Buró Modelo Automotriz Banco Litoral</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formBuroBLitoral" method="post">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Linea</label>
+                                <select id="selectTipoLineaBLitoral" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoLinea.Automotriz)">Automotriz</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoLinea.Consumo)">CONSUMO</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Tipo Crédito</label>
+                                <select id="selectTipoCreditoBLitoral" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoCredito.AutomotrizNuevoBDL)">Automotriz Nuevo BDL</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoCredito.AutomotrizUsadoBDL)">Automotriz Usado BDL</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoCredito.CamionesMicrocréditosBDL)">Camiones Microcréditos BDL</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Plazo</label>
+                                <input id="inputPlazoBLitoral" class="form-control form-control-sm input-decimal required input-border-radius" maxlength="10" autocomplete="off" required>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Monto</label>
+                                <input id="inputMontoBLitoral" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Ingreso</label>
+                                <input id="inputIngresoBLitoral" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Gasto Hogar</label>
+                                <input id="inputGastoHogarBLitoral" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Resta Gasto Financiero</label>
+                                <input id="inputRestaGastoFinancieroBLitoral" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formBuroBLitoral" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalBuroBLitoralMicrofinanza" tabindex="-1" role="dialog" aria-labelledby="modalBuroBLitoralMicrofinanzaLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Buró Modelo Microfinanzas Banco Litoral</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formBuroBLitoralMicrofinanza" method="post">
+                        <div class="row">
+                            <div class="col-lg-12 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Tipo Crédito</label>
+                                <select id="selectTipoCreditoBLitoralMicrofinanza" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoCreditoMicrofinanzas.RenovacionSeguros)">RENOVACIÓN DE SEGUROS, DEDUCIBLES Y DISPOSITIVOS</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0990981930001.TipoCreditoMicrofinanzas.PagoBienesServicios)">PAGO DE BIENES O SERVICIO</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Plazo</label>
+                                <input id="inputPlazoBLitoralMicrofinanza" class="form-control form-control-sm input-decimal required input-border-radius" maxlength="10" autocomplete="off" required>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Monto</label>
+                                <input id="inputMontoBLitoralMicrofinanza" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Ingreso</label>
+                                <input id="inputIngresoBLitoralMicrofinanza" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Gasto Hogar</label>
+                                <input id="inputGastoHogarBLitoralMicrofinanza" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Resta Gasto Financiero</label>
+                                <input id="inputRestaGastoFinancieroBLitoralMicrofinanza" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formBuroBLitoralMicrofinanza" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@* PARAMETROS COOPERATIVA TENA *@
+<div class="modal fade" id="modalBuroCoopTena" tabindex="-1" role="dialog" aria-labelledby="modalBuroCoopTenaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Consulta Buró Modelo Cooperativa Tena</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            <div class="alert alert-info p-2 mb-1" role="alert">
+                                <h6 class="info-note"><b id="textTipoCreditoCT">CONSUMO:</b> Monto Mínimo: $ <span id="spanMontoMinCT">1,00</span> - Monto Máximo: $ <span id="spanMontoMaxCT">50.000,00</span> - Plazo Min: <span id="spanPlazoMinCT">1</span> - Plazo Max: <span id="spanPlazoMaxCT">90</span></h6>
+                            </div>
+                        </div>
+                    </div>
+                    <form id="formBuroCoopTena" method="post">
+                        <div class="row">
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Tipo Crédito</label>
+                                <select id="selectTipoCreditoCoopTena" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.Consumo)">Consumo</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.ConsumoSinEncaje)">Consumo Sin Encaje</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.CrediCash)">Credi Cash</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.Microcredito)">Microcrédito</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.MicrocreditoSinEncaje)">Microcrédito Sin Encaje</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.CONAFIPS)">CONAFIPS</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.ConsumoDPF)">Consumo DPF</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.ConsumoRESREF)">Consumo RES/REF</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente1590001585001.TipoCreditoCoopTena.MicrocreditoREFRES)">Microcrédito RES/REF</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Plazo</label>
+                                <input id="inputPlazoCoopTena" class="form-control form-control-sm input-decimal required input-border-radius" maxlength="10" autocomplete="off" required>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Gasto Hogar</label>
+                                <input id="inputGastoHogarCoopTena" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm required">Monto</label>
+                                <input id="inputMontoCoopTena" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Ingreso</label>
+                                <input id="inputIngresoCoopTena" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                            <div class="col-lg-6 col-md-12 col-sm-12">
+                                <label class="col-form-label col-form-label-sm">Resta Gasto Financiero</label>
+                                <input id="inputRestaGastoFinancieroCoopTena" class="form-control form-control-sm input-decimal input-border-radius" autocomplete="off">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formBuroCoopTena" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--PARAMETROS BANCO DMIRO-->
+<div class="modal fade" id="modalModeloBancoDMiro" tabindex="-1" role="dialog" aria-labelledby="modalModeloBancoDMiroLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Buró de Crédito</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="formModeloBancoDMiro" method="post">
+                        <div class="row">
+                            <div class="col">
+                                <h6>¿Seleccionar modelo de Buró de Crédito?</h6>
+                                <select id="selectModeloBancoDMiro" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoBuroCredito.ModeloFinancial)">Modelo Financial</option>
+                                    <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoBuroCredito.ModeloDMiro)">Modelo DMiro</option>
+                                </select>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formModeloBancoDMiro" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalBuroBancoDMiro" tabindex="-1" role="dialog" aria-labelledby="modalBuroBancoDMiroLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title ml-1">Consulta Buró Modelo Banco DMiro</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            <div class="alert alert-info p-2 mb-1" role="alert">
+                                <h6 class="info-note"><b>MICROCRÉDITO: </b>Monto Mínimo: $ 1,00 - Monto Máximo: $ 30.000,00 - Plazo Min: 1 - Plazo Max: 48</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <form id="formBuroBDMiro" method="post">
+                                <div class="row">
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Identificación Conyuge</label>
+                                        <input id="inputIdentificacionConyugeBDMiro" class="form-control form-control-sm input-border-radius" maxlength="10" autocomplete="off">
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Estado Civil</label>
+                                        <select id="selectEstadoCivilBDMiro" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.EstadoCivil.EstadoCivilCasado)">CASADO/A</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.EstadoCivil.EstadoCivilDivorciado)">DIVORCIADO/A</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.EstadoCivil.EstadoCivilSoltero)">SOLTERO/A</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.EstadoCivil.EstadoCivilUnionLibre)">UNION LIBRE</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.EstadoCivil.EstadoCivilViudo)">VIUDO/A</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Antiguedad Laboral</label>
+                                        <input id="inputAntiguedadLaboralBDMiro" class="form-control form-control-sm input-integer required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Instrucción</label>
+                                        <select id="selectInstruccionBDMiro" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoInstruccion.InstruccionPrimaria)">PRIMARIA</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoInstruccion.InstruccionPostgrado)">POSTGRADO</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoInstruccion.InstruccionSecundaria)">SECUNDARIA</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoInstruccion.InstruccionSinEstudios)">SIN ESTUDIOS</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoInstruccion.InstruccionSuperior)">SUPERIOR</option>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoInstruccion.InstruccionUniversitaria)">UNIVERSITARIA</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Tipo de Préstamo</label>
+                                        <select id="selectTipoPrestamoBDMiro" class="form-control form-control-sm text-uppercase required input-border-radius" autocomplete="off" required>
+                                            <option value="@((short)Dominio.Tipos.Clientes.Cliente0992701374001.TipoPrestamo.PrestamoMicrocredito)">MICROCRÉDITO</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Monto Solicitado</label>
+                                        <input id="inputMontoSolicitadoBDMiro" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Plazo</label>
+                                        <input id="inputPlazoBDMiro" class="form-control form-control-sm input-integer required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm required">Ingreso</label>
+                                        <input id="inputIngresoBDMiro" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off" required>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12">
+                                        <label class="col-form-label col-form-label-sm">Gastos Personales</label>
+                                        <input id="inputGastosPersonalesBDMiro" class="form-control form-control-sm input-decimal required input-border-radius" autocomplete="off">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                    <button type="submit" form="formBuroBDMiro" class="btn btn-primary-custom"><i class="fa-solid fa-search mr-2"></i>Consultar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@using (Html.BeginScripts())
+{
+    <script>
+        function obtenerHistorialIess(idHistorial, identificacion) {
+            $("#divBarraBuroCredito").show();
+            $('#divHistorialIess').html("");
+            $.post({
+                url: "@Url.Action("ObtenerHistorialIess", "Principal", new { Area = "Consultas" })",
+                data: {
+                    "idHistorial": idHistorial,
+                    "identificacion": identificacion
+                },
+                success: function (data) {
+                    $("#divBarraBuroCredito").css("display", "none");
+                    $('#divHistorialIess').html(data);
+                    tippy('[data-tippy-content]', { placement: 'bottom', arrow: false });
+                },
+                error: function (error) {
+                    habilitarBoton();
+                    $("#divBarraIess").css("display", "none");
+                    $("#divFuenteIess").html(`<div class="row animate__animated animate__fadeInUp">
+                                                <div class="col">
+                                                    <div class="card">
+                                                        <div class="card-header">
+                                                            <div class="row">
+                                                                <div class="col-lg-11 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                                    <img src="../images/iconos/seguro.svg" alt="" width="40" height="40">
+                                                                    <span class="pl-2 my-auto">
+                                                                        Información IEES
+                                                                        <span class="badge badge-info pl-1"><a href="https://www.iess.gob.ec/empleador-web/pages/morapatronal/certificadoCumplimientoPublico.jsf" target="_blank" data-tippy-content="Página Oficial">Página Oficial</a></span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-lg-1 col-md-2 col-sm-4 col-3">
+                                                                    <button type="submit" class="btn btn-primary-custom" id="btnBuscarAfiliado" data-tippy-content="Volver a Buscar"><i class="fa-solid fa-arrow-rotate-right fa-lg"></i></button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-body pt-2">
+                                                            <div class="row">
+                                                                <div class="col">
+                                                                    <div class="alert alert-warning" role="alert">No fue posible procesar esta fuente. Presione el botón <b>Volver a Buscar</b> para reintentar el procesamiento de la fuente de información.</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>`);
+
+                    Toast.fire({
+                        icon: 'error',
+                        title: "¡Error!",
+                        text: "No se pudo procesar la consulta para IEES.",
+                        timer: 5000,
+                    });
+                    console.log(error);
+                }
+            });
+        }
+        $(document).ready(function () {
+            $('.datepicker').datepicker({
+            format: 'dd/mm/yyyy',
+            language: 'es',
+            todayBtn: "linked",
+            todayHighlight: true,
+            autoclose: true,
+            });
+
+            $(".datepicker").datepicker("setDate", "now");
+
+            $("#btnBuscarHistorialIess").click(function(e){
+                $.post({
+                    url: "@Url.Action("ObtenerHistorialIess", "Principal", new { Area = "Consultas" })",
+                    data: {
+                        "idHistorial": idHistorialTemp,
+                        "identificacion": identificacionTemp
+                },
+                success: function (data) {
+                    $("#divBarraBuroCredito").hide();
+                    // Crear un contenedor temporal para analizar el HTML recibido
+                   
+                        $('#divHistorialIess').html(data);
+                        tippy('[data-tippy-content]', { placement: 'bottom', arrow: false });
+                },
+                error: function (error) {
+                    habilitarBoton();
+                    $("#divBarraIess").css("display", "none");
+                    $("#divFuenteIess").html(`<div class="row animate__animated animate__fadeInUp">
+                                                <div class="col">
+                                                    <div class="card">
+                                                        <div class="card-header">
+                                                            <div class="row">
+                                                                <div class="col-lg-11 col-md-10 col-sm-8 col-9 d-inline-flex">
+                                                                    <img src="../images/iconos/seguro.svg" alt="" width="40" height="40">
+                                                                    <span class="pl-2 my-auto">
+                                                                        Información IEES
+                                                                        <span class="badge badge-info pl-1"><a href="https://www.iess.gob.ec/empleador-web/pages/morapatronal/certificadoCumplimientoPublico.jsf" target="_blank" data-tippy-content="Página Oficial">Página Oficial</a></span>
+                                                                    </span>
+                                                                </div>
+                                                                <div class="col-lg-1 col-md-2 col-sm-4 col-3">
+                                                                    <button type="submit" class="btn btn-primary-custom" id="btnBuscarAfiliado" data-tippy-content="Volver a Buscar"><i class="fa-solid fa-arrow-rotate-right fa-lg"></i></button>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <div class="card-body pt-2">
+                                                            <div class="row">
+                                                                <div class="col">
+                                                                    <div class="alert alert-warning" role="alert">No fue posible procesar esta fuente. Presione el botón <b>Volver a Buscar</b> para reintentar el procesamiento de la fuente de información.</span></div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>`);
+
+                    Toast.fire({
+                        icon: 'error',
+                        title: "¡Error!",
+                        text: "No se pudo procesar la consulta para IEES.",
+                        timer: 5000,
+                    });
+                    console.log(error);
+                }
+            });
+            });
+
+        });
+    </script>
+}

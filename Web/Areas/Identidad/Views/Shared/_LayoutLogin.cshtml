@@ -1,0 +1,21 @@
+@{
+    Layout = "/Views/Shared/_Empty.cshtml";
+}
+
+@section Header{
+    @RenderSection("Header", false)
+}
+
+@section Styles{
+    @RenderSection("Styles", false)
+}
+
+<div class="container-fluid">
+    <main role="main">
+        @RenderBody()
+    </main>
+</div>
+
+@section Scripts{
+    @RenderSection("Scripts", false)
+}

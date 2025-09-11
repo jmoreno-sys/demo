@@ -1,0 +1,614 @@
+﻿@model Web.Areas.Administracion.Models.UsuarioViewModel
+@using Persistencia.Repositorios.Balance
+@using Persistencia.Repositorios.Identidad
+@using Microsoft.EntityFrameworkCore;
+@inject IEmpresas Empresas
+@inject IRoles Roles
+@{
+    ViewData["Title"] = "Usuarios";
+
+    var empresas = await Empresas.ReadAsync(m => new { m.Id, m.RazonSocial }, p => p.Estado == Dominio.Tipos.EstadosEmpresas.Activo, o => o.OrderBy(m => m.RazonSocial));
+    var lstEmpresas = empresas.Select(m => new SelectListItem(m.RazonSocial, m.Id.ToString())).ToList();
+
+    var roles = await Roles.ReadAsync(m => new { m.Id, m.Name }, p => p.Activo, o => o.OrderBy(m => m.Name));
+    var lstRoles = roles.Select(m => new SelectListItem(m.Name, m.Id.ToString())).ToList();
+}
+<section id="content">
+    <div class="container-fluid px-xl-5 px-lg-5 px-md-1 px-sm-0">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb purple lighten-4 m-0">
+                        <li class="breadcrumb-item"><a asp-area="Consultas" asp-controller="Principal" asp-action="Inicio">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Usuarios</li>
+                    </ol>
+                </nav>
+                <div class="card">
+                    <div class="card-body pb-0 pt-0">
+                        <div class="row row-cols-lg-auto g-3 align-items-center">
+                            <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-end mb-2 mt-4 px-lg-0">
+                                <div class="text-right">
+                                    <button class="btn btn-info btn-primary-custom pl-2 pr-2" id="btnCrear"><i class="fa-solid fa-plus mr-2"></i>Crear</button>
+                                    <button class="btn btnDescargar btn-success d-inline-flex">
+                                        <i class="fas fa-file-export mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Descargar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pt-1">
+        <div class="col">
+            <div class="card">
+                <div class="card-body p-2">
+                    <table id="tablaUsuario" class="table table-sm table-bordered table-hover table-striped w-100">
+                        <thead class="text-center">
+                            <tr>
+                                <th class="no-export" data-orderable="false" data-priority="1"></th>
+                                <th>Empresa</th>
+                                <th>Nombres - Usuario</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th class="no-export"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="">
+                        </tbody>
+                    </table>
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+</section>
+
+<!--Modal Usuario-->
+<div id="modalUsuario" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalUsuarioLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="~/images/modales/usuario.svg" alt="" width="23" height="23">
+                <h5 class="modal-title ml-1">Usuario</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formUsuario" method="post">
+                    <div class="row border-bottom">
+                        <div class="col">
+                            <small class="font-weight-bold"><span><i class="fas fa-info-circle text-primary mr-1"></i></span>General</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="AccesoBuroCredito" />
+                        <input type="hidden" asp-for="AccesoEvaluacion" />
+                        <div class="col-lg-12 col-md-12 col-sm-12 divCodigo">
+                            <label class="col-form-label col-form-label-sm required">Identificación</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-id-badge"></i></span>
+                                </div>
+                                <input asp-for="Identificacion" class="form-control form-control-sm text-uppercase input-border-radius input-stringinteger" maxlength="20" required>
+                                <div class="input-group-append">
+                                    <button type="button" id="btnBuscarIdentificacion" class="btn btn-sm " data-tippy-content="Buscar Identificación"><i class="fa-solid fa-magnifying-glass"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required">Nombres</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-chalkboard-user"></i></span>
+                                </div>
+                                <input asp-for="NombreCompleto" class="form-control form-control-sm text-uppercase input-border-radius required" maxlength="100" autocomplete="off" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required ">Email</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+                                </div>
+                                <input asp-for="Email" type="email" class="form-control form-control-sm text-uppercase input-border-radius required" maxlength="100" autocomplete="off" required>
+                            </div>
+
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm">Empresa</label>
+                            <select asp-for="IdEmpresa" class="form-control form-control-sm selectpicker" data-size="5" data-live-search="true" title="Seleccionar..." data-actions-box="true" asp-items="@lstEmpresas" required>
+                            </select>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm">Roles</label>
+                            <select asp-for="IdRol" class="form-control form-control-sm selectpicker" data-size="5" data-live-search="true" title="Seleccionar..." data-actions-box="true" asp-items="@lstRoles" required>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row border-bottom pt-1">
+                        <div class="col">
+                            <small class="font-weight-bold"><span><i class="fas fa-key text-primary mr-1"></i></span>Accesos</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12 pb-0 mb-0 pt-1">
+                            <div id="divAlertaAccesos" class="alert alert-info p-2 mb-1" role="alert">
+                                <h6 class="info-note"><b>NOTA: </b>La empresa seleccionada no tiene contratado planes de evaluación o de buró de crédito</h6>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12 hidden" id="divAccesos">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchHabilitarEvaluacionesUsuario">
+                                <label class="custom-control-label" for="switchHabilitarEvaluacionesUsuario">Habilitar Evaluaciones</label>
+                            </div>
+                        </div>
+                        <div class="col-lg-12 col-md-12 col-sm-12 hidden" id="divAccesosBuro">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchHabilitarBuroCreditoUsuario">
+                                <label class="custom-control-label" for="switchHabilitarBuroCreditoUsuario">Habilitar Buró de Crédito</label>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                <button type="submit" form="formUsuario" id="btnGuardar" class="btn btn-primary-custom"><i class="fa-solid fa-floppy-disk mr-2"></i>Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Componentes-->
+<partial name="Components/_Datepicker" />
+<partial name="Components/_Datatables" />
+<partial name="Components/_Loader" />
+<partial name="Components/_Select" />
+
+@section Scripts{
+    <script>
+        let swCarga = false;
+        let tablaUsuario;
+        $(document).ready(function () {
+            let config = {
+                id: "tablaUsuario",
+                dom: "ftipr",
+                ajax: {
+                    url: '@Url.Action("Listado", "Usuario")',
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    }
+                },
+                createdRow: function (row, data, dataIndex) {
+                    if (data.estado === @((short)Dominio.Tipos.EstadosUsuarios.Inactivo))
+                        $(row).addClass("table-danger");
+                },
+                columns: [
+                    { data: 'id', visible: false },
+                    {
+                        width: '30%', data: 'razonSocial',
+                        render: function (data, type, row, meta) {
+                            return `${data} <p class="mt-0 pt-0 pb-0 mb-0 text-muted"><i>${row.identificacionEmpresa}</i></p>`;
+                        }
+                    },
+                    {
+                        width: '30%', data: 'nombreCompleto',
+                        render: function (data, type, row, meta) {
+                            let spanInactivado = '';
+                            let spanBuro = '';
+                            let spanEvaluacion = '';
+
+                            if (row.estado === @((short)Dominio.Tipos.EstadosUsuarios.Inactivo))
+                                spanInactivado += `<span class="text-center badge badge-danger span-inactivo">Inactivo</span>`;
+
+                            if (row.accesoBuroCredito)
+                                spanBuro = `<span class="badge badge-warning span-acceso-buro">Buró</span>`
+
+                            if (row.accesoEvaluacion)
+                                spanEvaluacion = `<span class="badge badge-success span-acceso-evaluacion">Evaluación</span>`
+
+                            let result = `${data} <p class="mt-0 pt-0 pb-0 mb-0 text-muted"><i>${row.userName}</i> ${spanInactivado} ${spanBuro} ${spanEvaluacion}</p>`;
+                            return result;
+                        }
+                    },
+                    { width: '15%', data: 'email' },
+                    { width: '20%', data: 'nombreRol' },
+                    {
+                        data: null, width: '5%', filter: 'none', orderable: false, class: 'text-center',
+                        render: function (data, type, row, meta) {
+                            let defaultMainActions =
+                                '<div class="btn-group dropleft">' +
+                                '<button type="button" class="btnAcciones btn btn-sm btn-primary-custom dropdown-toggle" data-boundary="viewport" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                '<i class="fas fa-bolt"></i>' +
+                                '</button>' +
+                                '<div class="dropdown-menu-acciones dropdown-menu">';
+
+                            defaultMainActions += '<a class="dropdown-item btnEditar" href="#">Editar</a>';
+                            defaultMainActions += '<a class="dropdown-item btnReenviar" href="#">Reenviar Clave</a>';
+
+                            if (row.estado === @((short)Dominio.Tipos.EstadosUsuarios.Activo))
+                                defaultMainActions += '<a class="dropdown-item btnDesactivar text-danger" href="#">Inactivar</a>';
+                            else if (row.estado === @((short)Dominio.Tipos.EstadosUsuarios.Inactivo))
+                                defaultMainActions += '<a class="dropdown-item btnActivar text-success" href="#">Activar</a>';
+
+                            if(row.lockoutEnd !== null)
+                                defaultMainActions += '<a class="dropdown-item btnBloqueo text-danger" href="#">Desbloquear</a>';
+
+                            defaultMainActions += '</div></div>';
+                            return defaultMainActions;
+                        }
+                    }
+                ],
+                buttons: [
+                    {
+                        extend: "excelHtml5", sheetName: "Consultas", autoFilter: true,
+                        filename: 'ReporteUsuario',
+                        exportOptions: {
+                            columns: ':not(.no-export)'
+                        },
+                        action: function (e, dt, button, config) {
+                            initLoadingSwal();
+                            let currentTable = this;
+                            setTimeout(function () {
+                                $.fn.dataTable.ext.buttons.excelHtml5.action.call(currentTable, e, dt, button, config);
+                            }, 1000);
+                        }
+                    }
+                ],
+                columnFilter: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                drawCallback: function () {
+                    tippy(".span-acceso-buro", { content: "Tiene acceso a buró de crédito" });
+                    tippy(".span-acceso-evaluacion", { content: "Tiene acceso a evaluación de riesgo" });
+                    tippy(".span-inactivo", { content: "Usuario inactivo" });
+                },
+                initComplete: function (e) {
+                    $('#tablaUsuario').wrap("<div class='scrolledTable'></div>");
+                    hideLoader();
+                },
+                pageLength: 20,
+                order: []
+            };
+            tablaUsuario = configDatatable(config);
+
+            $(".btnDescargar").on("click", function () {
+                tablaUsuario.button(0).trigger();
+            });
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Varios
+            $('#btnBuscarIdentificacion').click(function () {
+                let identificacion = $("#Identificacion").val().trim();
+                if (!identificacion || identificacion === "" || identificacion.length < 10) { Swal.fire("¡Advertencia!", "La identificación debe tener mínimo 10 caracteres", "warning"); return; }
+
+                $.ajax({
+                    url: '@Url.Action("BuscarIdentificacion", "Usuario")',
+                    method: 'POST',
+                    cache: false,
+                    data: { identificacion: identificacion },
+                    beforeSend: function () {
+                        initLoadingSwal();
+                    },
+                    success: function (data) {
+                        $("#NombreCompleto").val(data.nombres);
+                        $("#Email").val(data.correo);
+                        Swal.close();
+                    },
+                    error: function (error) {
+                        Toast.fire({
+                            icon: 'error',
+                            title: error.responseJSON.detail
+                        });
+                        console.log(error);
+                    }
+                });
+            });
+
+            $('#IdEmpresa').on('change', function () {
+                $("#divAccesos").addClass("hidden");
+                $("#divAccesosBuro").addClass("hidden");
+                $('#switchHabilitarEvaluacionesUsuario').prop('checked', false);
+                $('#switchHabilitarEvaluacionesUsuario').trigger("change");
+                $('#switchHabilitarBuroCreditoUsuario').prop('checked', false);
+                $('#switchHabilitarBuroCreditoUsuario').trigger("change");
+
+                let idEmpresa = this.value;
+                if (!idEmpresa || isNaN(parseInt(idEmpresa)) || parseInt(idEmpresa) === 0) return;
+
+                $.ajax({
+                    url: '@Url.Action("PlanesActivosEmpresas", "Usuario")',
+                    method: 'POST',
+                    cache: false,
+                    datatype: "json",
+                    data: { idEmpresa: idEmpresa },
+                    success: function (data) {
+                        if (data.planEvaluacion) {
+                            $("#divAccesos").removeClass("hidden");
+                            $("#divAlertaAccesos").addClass("hidden");
+                        } else
+                            $("#divAccesos").addClass("hidden");
+
+                        if (data.planBuro) {
+                            $("#divAccesosBuro").removeClass("hidden");
+                            $("#divAlertaAccesos").addClass("hidden");
+                        } else
+                            $("#divAccesosBuro").addClass("hidden");
+
+                        if (!data.planBuro && !data.planEvaluacion) {
+                            if ($("#divAlertaAccesos").hasClass("hidden"))
+                                $("#divAlertaAccesos").removeClass("hidden");
+
+                            $("#AccesoEvaluacion").val(false);
+                            $("#AccesoBuroCredito").val(false);
+                        }
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                        console.log(error);
+                    }
+                });
+            });
+
+            $("#switchHabilitarEvaluacionesUsuario").on("change", function () {
+                $("#AccesoEvaluacion").val($(this).is(":checked"));
+            });
+
+            $("#switchHabilitarBuroCreditoUsuario").on("change", function () {
+                $("#AccesoBuroCredito").val($(this).is(":checked"));
+            });
+
+            $('.btnSalir').on('click', function () {
+                $('#modalUsuario').modal('hide');
+            });
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //CRUD
+            $("#btnCrear").on("click", function () {
+                limpiar();
+                $("#Identificacion").removeAttr("readonly");
+                $("#modalUsuario").modal("show");
+                $("#btnBuscarIdentificacion").prop('disabled', false);
+                $("#AccesoEvaluacion").val(false);
+                $("#AccesoBuroCredito").val(false);
+                $('#switchHabilitarEvaluacionesUsuario').prop('checked', false);
+                $('#switchHabilitarEvaluacionesUsuario').trigger("change");
+                $('#switchHabilitarBuroCreditoUsuario').prop('checked', false);
+                $('#switchHabilitarBuroCreditoUsuario').trigger("change");
+            });
+
+            $("#formUsuario").submit(function (e) {
+                e.preventDefault();
+
+                if ($("#Identificacion").val() === "") { Swal.fire("¡Advertencia!", "La identificación no puede ir vacia", "warning"); return false; }
+                if ($("#NombreCompleto").val() === "") { Swal.fire("¡Advertencia!", "El nombre no puede ir vacio", "warning"); return false; }
+                if ($("#Email").val() === "") { Swal.fire("¡Advertencia!", "El email no puede ir vacio", "warning"); return false; }
+                if ($("#IdEmpresa").val() === "0" || $("#IdEmpresa").val() === "") { Swal.fire("¡Advertencia!", "Debe seleccionar una empresa", "warning"); return false; }
+                if ($("#IdRol").val() === "0" || $("#IdRol").val() === "") { Swal.fire("¡Advertencia!", "Debe seleccionar un rol", "warning"); return false; }
+                if (!isEmail($("#Email").val().trim())) { Swal.fire("¡Advertencia!", "El correo electrónico ingresado no es válido", "warning"); return false; }
+
+                Swal.fire({
+                    title: '¿Está seguro de registrar esta información?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Registrar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: "@Url.Action("Guardar","Usuario")",
+                            method: 'POST',
+                            cache: false,
+                            datatype: "json",
+                            data: $("#formUsuario").serialize(),
+                            success: function (data) {
+                                Swal.fire('¡Registro Exitoso!', 'El usuario se ha registrado correctamente', "success").then((value) => {
+                                    tablaUsuario.ajax.reload(null, true);
+                                    limpiar();
+                                    $("#modalUsuario").modal("hide");
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnEditar', function () {
+                limpiar();
+                $("#btnBuscarIdentificacion").prop('disabled', true);
+                let data = tablaUsuario.row($(this).closest('tr')).data();
+
+                $("#Id").val(data.id);
+                $("#Identificacion").attr("readonly", true);
+                $("#Identificacion").val(data.identificacion);
+                $("#NombreCompleto").val(data.nombreCompleto);
+                $("#Email").val(data.email);
+                $("#UserName").val(data.userName);
+                $("#IdEmpresa").val(data.idEmpresa).trigger("change");
+                $("#IdEmpresa").selectpicker("refresh");
+                $("#IdRol").val(data.idRol).trigger("change");
+                $("#IdRol").selectpicker("refresh");
+
+                $("#AccesoEvaluacion").val(data.accesoEvaluacion);
+                $("#AccesoBuroCredito").val(data.accesoBuroCredito);
+                $('#switchHabilitarEvaluacionesUsuario').prop('checked', false);
+                $('#switchHabilitarEvaluacionesUsuario').trigger("change");
+                if (data.accesoEvaluacion) {
+                    $('#switchHabilitarEvaluacionesUsuario').prop('checked', true);
+                    $('#switchHabilitarEvaluacionesUsuario').trigger("change");
+                }
+
+                $('#switchHabilitarBuroCreditoUsuario').prop('checked', false);
+                $('#switchHabilitarBuroCreditoUsuario').trigger("change");
+                if (data.accesoBuroCredito) {
+                    $('#switchHabilitarBuroCreditoUsuario').prop('checked', true);
+                    $('#switchHabilitarBuroCreditoUsuario').trigger("change");
+                }
+
+                $("#modalUsuario").modal("show");
+            });
+
+            $('.table tbody').on('click', '.btnDesactivar', function () {
+                let data = tablaUsuario.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de inactivar este usuario?',
+                    text: 'El usuario ya no podrá acceder al sistema',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Inactivar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("Inactivar", "Usuario")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idUsuario: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Inactivación Exitosa!', 'El usuario se ha inactivado correctamente', "success").then((value) => {
+                                    tablaUsuario.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnActivar', function () {
+                let data = tablaUsuario.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de activar este usuario?',
+                    text: 'El usuario volverá a tener acceso al sistema',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Activar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("Activar", "Usuario")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idUsuario: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Activación Exitosa!', 'El usuario se ha activado correctamente', "success").then((value) => {
+                                    tablaUsuario.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnBloqueo', function () {
+                let data = tablaUsuario.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de desbloquear este usuario?',
+                    text: 'El usuario volverá a tener acceso al sistema',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Activar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("Desbloquear", "Usuario")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idUsuario: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Activación Exitosa!', 'El usuario se ha desbloqueada correctamente', "success").then((value) => {
+                                    tablaUsuario.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        $('.table tbody').on('click', '.btnReenviar', function () {
+            let data = tablaUsuario.row($(this).closest('tr')).data();
+
+            Swal.fire({
+                title: `¿Está seguro de reenviar la clave al usuario con identificación ${data.identificacion}?`,
+                text: `Se generará una nueva clave y será enviada al correo ${data.email}`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Aceptar',
+                cancelButtonText: 'Cancelar',
+                showLoaderOnConfirm: true,
+                allowOutsideClick: () => !Swal.isLoading(),
+                backdrop: true,
+                preConfirm: function () {
+                    return $.ajax({
+                        url: '@Url.Action("ReenviarCredenciales", "Usuario")',
+                        method: 'POST',
+                        cache: false,
+                        data: { identificacion: data.identificacion },
+                        success: function (data) {
+                            Swal.fire('¡Credenciales Enviadas!', 'Se ha reenviado con éxito la nueva clave', "success").then((value) => {
+                                tablaUsuario.ajax.reload(null, true);
+                            });
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+        });
+
+        function limpiar() {
+            $("#Id").val("0");
+            $("#Identificacion").val("");
+            $("#NombreCompleto").val("");
+            $("#Email").val("");
+            $("#UserName").val("");
+            $("#IdEmpresa").val("").trigger("change");
+            $("#IdEmpresa").selectpicker("refresh");
+            $("#IdRol").val("").trigger("change");
+            $("#IdRol").selectpicker("refresh");
+            $("#divAccesos").addClass("hidden");
+            $("#divAccesosBuro").addClass("hidden");
+            $("#divAlertaAccesos").removeClass("hidden");
+        }
+    </script>
+}

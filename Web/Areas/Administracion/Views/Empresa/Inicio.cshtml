@@ -1,0 +1,2258 @@
+﻿@using Persistencia.Repositorios.Identidad
+@using Microsoft.AspNetCore.Identity
+@using Web.Areas.Administracion.Models
+@model Web.Areas.Administracion.Models.EmpresaViewModel
+@inject IUsuarios Usuarios
+
+@{
+    ViewData["Title"] = "Empresas";
+    var esAdmin = User.IsInRole(Dominio.Tipos.Roles.Administrador) ? 1 : 0;
+
+    var fuenteBuro = Enum.GetValues(typeof(Dominio.Tipos.FuentesBuro)).Cast<Dominio.Tipos.FuentesBuro>();
+    var lstFuenteBuro = fuenteBuro.Where(m => m != Dominio.Tipos.FuentesBuro.Desconocido).Select(m => new SelectListItem { Text = m.GetEnumDescription(), Value = ((short)m).ToString() }).ToList();
+
+    var usuarios = await Usuarios.ReadAsync(m => new { m.Id, m.NombreCompleto }, p => p.Estado == Dominio.Tipos.EstadosUsuarios.Activo && p.IdEmpresa == Dominio.Constantes.General.IdEmpresaConfiable, o => o.OrderBy(m => m.NombreCompleto));
+    var lstUsuarios = usuarios.Select(m => new SelectListItem(m.NombreCompleto, m.Id.ToString())).ToList();
+}
+
+<section id="content">
+    <div class="container-fluid px-xl-5 px-lg-5 px-md-1 px-sm-0">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb purple lighten-4 m-0">
+                        <li class="breadcrumb-item"><a asp-area="Consultas" asp-controller="Principal" asp-action="Inicio">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Empresas</li>
+                    </ol>
+                </nav>
+                <div class="card">
+                    <div class="card-body pb-0 pt-0">
+                        <div class="row row-cols-lg-auto g-3 align-items-center">
+                            <div class="col-lg-12 col-md-12 col-sm-12 d-flex justify-content-end mb-2 mt-4 px-lg-0">
+                                <div class="text-right">
+                                    <button class="btn btn-info btn-primary-custom pl-2 pr-2" id="btnCrear"><i class="fa-solid fa-plus mr-2"></i>Crear</button>
+                                    <button class="btn btnDescargar btn-success d-inline-flex">
+                                        <i class="fas fa-file-export mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Descargar</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pt-1">
+        <div class="col">
+            <div class="card">
+                <div class="card-body p-2">
+                    <table id="tablaEmpresa" class="table table-sm table-bordered table-hover table-striped w-100">
+                        <thead class="text-center">
+                            <tr>
+                                <th class="no-export"></th>
+                                <th class="no-export">Razón social - Identificación</th>
+                                <th>Identificación</th>
+                                <th>Razón social</th>
+                                <th>Plan Demo</th>
+                                <th>Direccion</th>
+                                <th>Persona contacto</th>
+                                <th>Teléfono</th>
+                                <th>Correo</th>
+                                <th>Asesor Comercial</th>
+                                <th>Estado</th>
+                                <th>Registrado por</th>
+                                <th>Fecha Registro</th>
+                                <th>Fecha Ult. Modificación</th>
+                                <th class="no-export"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                    <br />
+                </div>
+            </div>
+        </div>
+    </div>
+    <br />
+</section>
+
+<!--Modal Empresa-->
+<div id="modalEmpresa" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalEmpresaLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="~/images/modales/empresa.svg" alt="" width="23" height="23">
+                <h5 class="modal-title ml-1">Empresa</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="formEmpresa" method="post" enctype="multipart/form-data">
+                    <input type="hidden" asp-for="Id" />
+                    <input type="hidden" asp-for="BaseImagen" />
+                    <input type="hidden" asp-for="HabilitarPlanBuroCredito" />
+                    <input type="hidden" asp-for="HabilitarPlanEvaluacion" />
+                    <input type="hidden" asp-for="PlanDemostracion" />
+                    <div class="row border-bottom divAuditoriaEmpresa hidden">
+                        <div class="col">
+                            <small class="font-weight-bold"><span><i class="fas fa-user-pen text-primary mr-1"></i></span>Registro</small>
+                        </div>
+                    </div>
+                    <div class="row divAuditoriaEmpresa hidden">
+                        <div class="col">
+                            <label class="col-form-label col-form-label-sm pt-0 pb-0 mt-0 mb-0">Registrado Por: </label><span id="spanUsuarioRegistro" class="font-weight-bold pl-2" style="font-size: 0.75rem"></span><br />
+                            <label class="col-form-label col-form-label-sm pt-0 pb-0 mt-0 mb-0">Fecha de Registro: </label><span id="spanFechaRegistro" class="font-weight-bold pl-2" style="font-size: 0.75rem"></span><br />
+                            <label class="col-form-label col-form-label-sm pt-0 pb-0 mt-0 mb-0">Fecha de Ult. Modificación: </label><span id="spanFechaModificacion" class="font-weight-bold pl-2" style="font-size: 0.75rem"></span>
+                        </div>
+                    </div>
+                    <div class="row border-bottom">
+                        <div class="col">
+                            <small class="font-weight-bold"><span><i class="fas fa-info-circle text-primary mr-1"></i></span>General</small>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-3 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required">Identificación</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-id-badge"></i></span>
+                                </div>
+                                <input asp-for="Identificacion" class="form-control form-control-sm text-uppercase input-border-radius input-integer" maxlength="20" required>
+                                <div class="input-group-append">
+                                    <button type="button" id="btnBuscarIdentificacion" class="btn btn-sm btn-outline-secondary" data-tippy-content="Buscar Identificación"><i class="fa-solid fa-magnifying-glass"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required">Razón social</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-chalkboard-user"></i></span>
+                                </div>
+                                <input asp-for="RazonSocial" class="form-control form-control-sm text-uppercase input-border-radius required" maxlength="250" autocomplete="off" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required">Persona contacto</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-user"></i></span>
+                                </div>
+                                <input asp-for="PersonaContacto" class="form-control form-control-sm text-uppercase required input-border-radius" maxlength="100" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required">Teléfono</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-mobile"></i></span>
+                                </div>
+                                <input asp-for="Telefono" class="form-control form-control-sm text-uppercase required input-border-radius" maxlength="20" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-6 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required">Dirección</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-location-dot"></i></span>
+                                </div>
+                                <input asp-for="Direccion" class="form-control form-control-sm text-uppercase input-border-radius required" maxlength="400" autocomplete="off" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required">Correo</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-solid fa-envelope"></i></span>
+                                </div>
+                                <input type="email" asp-for="Correo" class="form-control form-control-sm text-uppercase required input-border-radius" maxlength="100" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-3 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm required">Fecha Inicio Cobro Recurrente</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text"><i class="fa-regular fa-calendar"></i></span>
+                                </div>
+                                <input type="text" asp-for="FechaCobroRecurrente" class="form-control form-control-sm text-uppercase required input-border-radius datepicker" data-provide="datepicker" data-date-format="dd/mm/yyyy" autocomplete="off" maxlength="10" required>
+                            </div>
+                        </div>
+                        <div class="col-lg-9 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm">Asesor Comercial</label>
+                            <select asp-for="IdAsesorComercialConfiable" class="form-control form-control-sm selectpicker" data-size="5" data-live-search="true" title="Seleccionar..." data-actions-box="true" asp-items="@lstUsuarios">
+                                <option value="">NINGUNO</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!--Planes Empresa-->
+                    <div class="row border-bottom pt-3">
+                        <div class="col">
+                            <small class="font-weight-bold"><span><i class="fas fa-search text-primary mr-1"></i></span>Plan de Consulta</small>
+                        </div>
+                        <div class="col text-right">
+                            <button id="btnNuevoPlanEmpresa" type="button" class="btn btn-sm btn-success" data-tippy-content="Nuevo Plan de Consulta"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="row pt-1">
+                        <div class="col">
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchPlanDemo">
+                                <label class="custom-control-label" for="switchPlanDemo">Plan Demostración</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchTipoPlan">
+                                <label class="custom-control-label" for="switchTipoPlan">Consultas unificadas (Cédulas y RUCs)</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchMaxConsultas">
+                                <label class="custom-control-label" for="switchMaxConsultas">Máximo número de consultas</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchBloqueoConsultas">
+                                <label class="custom-control-label" for="switchBloqueoConsultas">Bloquear consultas al alcanzar límite</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchHabilitarEvaluaciones">
+                                <label class="custom-control-label" for="switchHabilitarEvaluaciones">Habilitar evaluaciones</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchHabilitarBuroCredito">
+                                <label class="custom-control-label" for="switchHabilitarBuroCredito">Habilitar plán buró de crédito</label>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12 col-md-12 col-sm-12">
+                                    <label class="col-form-label col-form-label-sm required">Nombre de plan</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fa-solid fa-search-dollar"></i></span>
+                                        </div>
+                                        <input type="text" autocomplete="off" maxlength="100" asp-for="PlanEmpresa.NombrePlan" class="form-control form-control-sm text-uppercase" required />
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" asp-for="PlanEmpresa.Id" />
+                            <input type="hidden" asp-for="PlanEmpresa.BloquearConsultas" />
+                            <input type="hidden" asp-for="PlanUnificado" />
+                            <div class="scrolledTable pt-1 tablaPlanDividido">
+                                <table id="tablaPlanes" class="table table-sm table-bordered table-hover table-striped w-100">
+                                    <thead class="size-titulo-50 text-center">
+                                        <tr>
+                                            <th>Valor plan anual RUCs</th>
+                                            <th>Valor plan anual cédulas</th>
+                                            <th>Valor plan mensual RUCs</th>
+                                            <th>Valor plan mensual cédulas</th>
+                                            <th># Consultas RUCs</th>
+                                            <th># Consultas cédulas</th>
+                                            <th>Valor consulta RUCs</th>
+                                            <th>Valor consulta cédulas</th>
+                                            <th>Valor consulta adicional RUCs</th>
+                                            <th>Valor consulta adicional cédulas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorPlanAnualRuc" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorPlanAnualCedula" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorPlanMensualRuc" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorPlanMensualCedula" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="number" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.NumeroConsultasRuc" class="form-control form-control-sm input-integer" /></td>
+                                            <td><input type="number" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.NumeroConsultasCedula" class="form-control form-control-sm input-integer" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" readonly="readonly" value="0" asp-for="PlanEmpresa.ValorPorConsultaRucs" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" readonly="readonly" value="0" asp-for="PlanEmpresa.ValorPorConsultaCedulas" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorConsultaAdicionalRucs" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorConsultaAdicionalCedulas" class="form-control form-control-sm input-decimal" /></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="scrolledTable pt-1 tablaPlanUnificado hidden">
+                                <table id="tablaPlanesUnificado" class="table table-sm table-bordered table-hover table-striped w-100">
+                                    <thead class="size-titulo-50 text-center">
+                                        <tr>
+                                            <th>Valor plan anual</th>
+                                            <th>Valor plan mensual</th>
+                                            <th># Consultas</th>
+                                            <th>Valor consulta</th>
+                                            <th>Valor consulta adicional</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorPlanAnual" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorPlanMensual" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="number" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.NumeroConsultas" class="form-control form-control-sm input-integer" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" readonly="readonly" value="0" asp-for="PlanEmpresa.ValorPorConsulta" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEmpresa.ValorConsultaAdicional" class="form-control form-control-sm input-decimal" /></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Planes Evaluación-->
+                    <div class="row border-bottom divTablaEvaluaciones pt-1">
+                        <div class="col">
+                            <small class="font-weight-bold"><span><i class="fas fa-list-ol text-primary mr-1"></i></span>Plan de Evaluación</small>
+                        </div>
+                        <div class="col text-right divNuevoPlanEvaluacion">
+                            <button id="btnNuevoPlanEvaluacion" type="button" class="btn btn-sm btn-success" data-tippy-content="Nuevo Plan de Evaluación"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="row divTablaEvaluaciones">
+                        <div class="col">
+                            <div class="scrolledTable pt-1">
+                                <input type="hidden" asp-for="PlanEvaluacion.Id">
+                                <input type="hidden" asp-for="PlanEvaluacion.BloquearConsultas" />
+                                <input type="hidden" asp-for="PlanEvaluacion.MaximoNumeroConsultas" />
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="switchBloqueoConsultasEvaluaciones">
+                                    <label class="custom-control-label" for="switchBloqueoConsultasEvaluaciones">Bloquear consultas al alcanzar límite de evaluaciones </label>
+                                </div>
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="switchMaxConsultasEvaluaciones">
+                                    <label class="custom-control-label" for="switchMaxConsultasEvaluaciones">Máximo número de evaluaciones </label>
+                                </div>
+                                <table id="tablaPlanesEvaluacion" class="table table-sm table-bordered table-hover table-striped w-100">
+                                    <thead class="size-titulo-50 text-center">
+                                        <tr>
+                                            <th># Consultas</th>
+                                            <th>Valor consulta</th>
+                                            <th>Valor consulta adicional</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><input type="number" autocomplete="off" maxlength="20" asp-for="PlanEvaluacion.NumeroConsultas" class="form-control form-control-sm input-integer" min="0" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEvaluacion.ValorConsulta" class="form-control form-control-sm input-decimal" min="0" value="0" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanEvaluacion.ValorConsultaAdicional" class="form-control form-control-sm input-decimal" min="0" /></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Planes Buró Crédito-->
+                    <div class="row border-bottom divPlanesBuroCredito pt-1">
+                        <div class="col">
+                            <small class="font-weight-bold"><span><i class="fas fa-credit-card text-primary mr-1"></i></span>Plan de Buró de Crédito</small>
+                        </div>
+                        <div class="col text-right divNuevoPlanBuro">
+                            <button id="btnNuevoPlanBuroCredito" type="button" class="btn btn-sm btn-success" data-tippy-content="Nuevo Plan de Buró de Crédito"><i class="fa-solid fa-plus"></i></button>
+                        </div>
+                    </div>
+                    <div class="row divPlanesBuroCredito">
+                        <div class="col">
+                            <input type="hidden" asp-for="PlanBuroCredito.Id" />
+                            <input type="hidden" asp-for="PlanBuroCredito.BloquearConsultas" />
+                            <input type="hidden" asp-for="PlanBuroCredito.ConsultasCompartidas" />
+                            <input type="hidden" asp-for="PlanBuroCredito.ModeloCooperativas" />
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchBloqueoConsultasBuro">
+                                <label class="custom-control-label" for="switchBloqueoConsultasBuro">Bloquear consultas al alcanzar límite</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchConsultasCompartidas">
+                                <label class="custom-control-label" for="switchConsultasCompartidas">Utilizar credenciales internas al alcanzar límite</label>
+                            </div>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox" class="custom-control-input" id="switchModeloCooperativas">
+                                <label class="custom-control-label" for="switchModeloCooperativas">¿Usa modelo de cooperativas 4 y 5 (AVAL)?</label>
+                            </div>
+                            <div class="scrolledTable pt-1">
+                                <table id="tablaPlanesBuroCredito" class="table table-sm table-bordered table-hover table-striped w-100">
+                                    <thead class="size-titulo-50 text-center">
+                                        <tr>
+                                            <th>Fuentes</th>
+                                            <th># Consultas</th>
+                                            <th># Consultas (Credenciales Internas)</th>
+                                            <th>Valor plan buró de crédito</th>
+                                            <th>Valor consulta</th>
+                                            <th>Días de almacenamiento (Caché)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><select asp-for="PlanBuroCredito.Fuente" class="form-select form-select-sm" asp-items="@lstFuenteBuro"><option value="" selected disabled hidden>Seleccionar..</option></select></td>
+                                            <td><input type="number" autocomplete="off" maxlength="20" asp-for="PlanBuroCredito.NumeroMaximoConsultas" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="number" autocomplete="off" maxlength="20" asp-for="PlanBuroCredito.NumeroMaximoConsultasCompartidas" class="form-control form-control-sm input-integer" disabled/></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanBuroCredito.ValorPlanBuroCredito" class="form-control form-control-sm input-decimal" /></td>
+                                            <td><input type="text" autocomplete="off" maxlength="20" asp-for="PlanBuroCredito.ValorConsulta" class="form-control form-control-sm input-decimal" readonly="readonly" value="0" /></td>
+                                            <td><input type="number" autocomplete="off" maxlength="20" asp-for="PlanBuroCredito.PersistenciaCache" class="form-control form-control-sm input-integer" /></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row border-bottom pt-1">
+                        <div class="col">
+                            <small class="font-weight-bold"><span><i class="fa-solid fa-paperclip text-primary mr-1"></i></span>Adjuntos</small>
+                        </div>                      
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm">Logotipo</label>
+                            <div class="file-loading">
+                                <input id="input-file" name="input-file" type="file" class="file" data-preview-file-type="text" accept=".png, .jpg, .jpeg, .gif">
+                                <input type="hidden" id="inputBaseLogo" />
+                            </div>
+                            <div id="compressContentinputBaseLogo"></div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm">Contrato</label>
+                            <a href="javascript:;" style="font-size: 0.775rem;" id="btnDescargarContrato"><i class="fa-solid fa-file-arrow-down"></i> Descargar</a>
+                            <div class="file-loading">
+                                <input id="input-contrato" name="input-contrato" type="file" class="file" data-preview-file-type="text" data-show-preview="false" accept=".pdf">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12">
+                            <label class="col-form-label col-form-label-sm">Observaciones</label>
+                            <textarea class="form-control form-control-sm text-uppercase input-border-radius" asp-for="Observaciones" rows="3"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+                <button type="submit" form="formEmpresa" class="btn btn-primary-custom"><i class="fa-solid fa-floppy-disk mr-2"></i>Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Modal Historial Planes-->
+<div id="modalHistorialPlanes" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalHistorialPlanesLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="~/images/modales/historial.svg" alt="" width="21" height="21">
+                <h5 class="modal-title ml-1">Historial de Planes</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="inputIdEmpresa" />
+                <div class="row">
+                    <div class="col">
+                        <div class="card">
+                            <div class="row p-2">
+                                <div class="col-lg-12 col-md-12 col-sm-12">
+                                    <label class="col-form-label col-form-label-sm pt-0 pb-0"><b>Identificación:</b></label>
+                                    <label id="labelIdentificacionEmpresa" class="col-form-label col-form-label-sm pt-0 pb-0"></label>
+                                </div>
+                                <div class="col-lg-12 col-md-12 col-sm-12">
+                                    <label class="col-form-label col-form-label-sm pt-0 pb-0"><b>Razón social:</b></label>
+                                    <label id="labelEmpresaPlan" class="col-form-label col-form-label-sm pt-0 pb-0"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <ul class="nav nav-tabs mb-3 d-print-none" id="navPlanes" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link active font-weight-bold px-3 px-lg-4"
+                           id="linkPlanEmpresa"
+                           data-mdb-toggle="tab"
+                           href="#linkPlanEmpresa-1"
+                           role="tab"
+                           aria-controls="linkPlanEmpresa-1"
+                           aria-selected="true">
+                            <span class="d-block d-lg-none" data-tippy-content="Plan Empresa"><i class="fa-solid fa-file-signature"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block">Plan empresa</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="linkPlanBuro"
+                           data-mdb-toggle="tab"
+                           href="#linkPlanBuro-1"
+                           role="tab"
+                           aria-controls="linkPlanBuro-1"
+                           aria-selected="false">
+                            <span class="d-block d-lg-none" data-tippy-content="Plan Buró Crédito"><i class="fa-solid fa-file-invoice-dollar"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block">Plan buró crédito</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <a class="nav-link font-weight-bold px-3 px-lg-4"
+                           id="linkPlanEvaluacion"
+                           data-mdb-toggle="tab"
+                           href="#linkPlanEvaluacion-1"
+                           role="tab"
+                           aria-controls="linkPlanEvaluacion-1"
+                           aria-selected="false">
+                            <span class="d-block d-lg-none" data-tippy-content="Plan Evaluación"><i class="fa-solid fa-file-lines"></i></span>
+                            <span class="d-none d-sm-none d-md-none d-lg-block">Plan evaluación</span>
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <!--Planes Empresa-->
+                    <div class="tab-pane fade show active d-print-inline pagebreak" id="linkPlanEmpresa-1" role="tabpanel" aria-labelledby="linkPlanEmpresa-1">
+                        <div class="row">
+                            <div class="col">
+                                <div class="row">
+                                    <div class="scrolledTable">
+                                        <table id="tablaPlanesEmpresa" class="table table-sm table-bordered table-hover table-striped w-100">
+                                            <thead class="text-center">
+                                                <tr>
+                                                    <th class="no-export"></th>
+                                                    <th>Nombre de plan</th>
+                                                    <th>Número consultas RUCs</th>
+                                                    <th>Número consultas cédulas</th>
+                                                    <th>Número consultas (Plan Unificado)</th>
+                                                    <th>Fecha creación</th>
+                                                    <th>Estado</th>
+                                                    <th class="no-export"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Planes Buró-->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="linkPlanBuro-1" role="tabpanel" aria-labelledby="linkPlanBuro-1">
+                        <div class="row">
+                            <div class="col">
+                                <div class="row">
+                                    <div class="scrolledTable">
+                                        <table id="tablaPlanesBuro" class="table table-sm table-bordered table-hover table-striped w-100">
+                                            <thead class="text-center">
+                                                <tr>
+                                                    <th>Fuente</th>
+                                                    <th>Número de consultas</th>
+                                                    <th class="text-center">Valor plan</th>
+                                                    <th class="text-center">Valor consulta</th>
+                                                    <th>Días de almacenamiento (Caché)</th>
+                                                    <th>Fecha creación</th>
+                                                    <th>Estado</th>
+                                                    <th class="no-export"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Planes Evaluaciones-->
+                    <div class="tab-pane fade d-print-inline pagebreak" id="linkPlanEvaluacion-1" role="tabpanel" aria-labelledby="linkPlanEvaluacion-1">
+                        <div class="row">
+                            <div class="col">
+                                <div class="row">
+                                    <div class="scrolledTable">
+                                        <table id="tablaPlanesEvaluaciones" class="table table-sm table-bordered table-hover table-striped w-100">
+                                            <thead class="text-center">
+                                                <tr>
+                                                    <th>Número de consultas</th>
+                                                    <th class="text-center">Valor consulta</th>
+                                                    <th class="text-center">Valor consulta adicional</th>
+                                                    <th>Bloquear consulta</th>
+                                                    <th>Fecha de creación</th>
+                                                    <th>Estado</th>
+                                                    <th class="no-export"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cancelar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Componentes-->
+<partial name="Components/_Datepicker" />
+<partial name="Components/_Datatables" />
+<partial name="Components/_Loader" />
+<partial name="Components/_FileInput" />
+<partial name="Components/_Select" />
+
+@section Scripts{
+    <script>
+        let swCarga = false;
+        let tablaEmpresa;
+        let tablaPlanesEmpresa;
+        let tablaPlanesConsultasEvaluaciones;
+        let tablaPlanesConsultasBuro;
+        let inputFile;
+        let inputFileContrato;
+
+        $(document).ready(function () {
+            $('.datepicker').datepicker({
+                format: 'dd/mm/yyyy',
+                language: 'es',
+                todayBtn: "linked",
+                todayHighlight: true,
+                autoclose: true,
+            }, { dateFormat: "dd/mm/yyyy" });
+
+            $('.modal').on('hidden.bs.modal', function () {
+                $("body").css("padding-right", "0");
+            });
+
+            $("#btnDescargarContrato").hide();
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Empresa
+            let config = {
+                id: "tablaEmpresa",
+                dom: "ftipr",
+                ajax: {
+                    url: '@Url.Action("Listado", "Empresa")',
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    }
+                },
+                createdRow: function (row, data, dataIndex) {
+                    if (data.estado === @((short)Dominio.Tipos.EstadosEmpresas.Inactivo))
+                        $(row).addClass("table-danger");
+                },
+                columns: [
+                    { width: '1%', className: "details-control", filter: 'none', data: null, defaultContent: "", orderable: false },
+                    {
+                        width: '28%', data: 'identificacion',
+                        render: function (data, type, row, meta) {
+                            let spanInactivado = '';
+                            let spanBuro = '';
+                            let spanEvaluacion = '';
+                            let spanDemo = '';
+                           
+                            if (row.estado === @((short)Dominio.Tipos.EstadosEmpresas.Inactivo))
+                                spanInactivado += `<span class="text-center badge badge-danger span-inactivo">Inactivo</span>`;
+                            else if (row.planDemo)
+                                spanDemo = `<span class="text-center badge badge-info span-demo">Plan Demo</span>`;
+                            
+                            if (row.planBuroCredito)
+                                spanBuro = `<span class="badge badge-warning span-acceso-buro">Buró</span>`
+
+                            if (row.planesEvaluaciones)
+                                spanEvaluacion = `<span class="badge badge-success span-acceso-evaluacion">Evaluación</span>`
+
+                            return `${row.razonSocial} <p class="mt-0 pt-0 pb-0 mb-0 text-muted"><i>${data}</i> ${spanInactivado} ${spanDemo} ${spanBuro} ${spanEvaluacion}</p>`;
+                        }
+                    },
+                    { visible: false, data: 'identificacion' },
+                    { visible: false, data: 'razonSocial' },
+                    {
+                        width: '2%', data: 'planDemo', className: 'text-center',
+                        render: function (data, type, row, meta) {
+                            return data ? "SI" : "NO";
+                        }
+                    },
+                    { width: '15%', data: 'direccion' },                    
+                    { width: '15%', data: 'personaContacto' },
+                    { width: '5%', data: 'telefono' },
+                    { width: '5%', data: 'correo' },
+                    { width: '15%', data: 'asesorComercialConfiable' },                   
+                    { width: '10%', data: 'estado', class: 'text-center',
+                        render: function (data, type, row, meta) {
+                            if (data === @((short)Dominio.Tipos.EstadosEmpresas.Inactivo))
+                                return '<span class="text-danger"><i class="fas fa-ban"></i></span> Inactivo';
+                            else if (data === @((short)Dominio.Tipos.EstadosEmpresas.Activo))
+                                return '<span class="text-success"><i class="fas fa-check-circle"></i></span> Activo';
+                        }
+                    },                   
+                    { visible: false, data: 'nombreUsuarioRegistro' },
+                    {
+                        visible: false, data: 'fechaCreacion',
+                        render: function (data, type, row, meta) {
+                            return data ? formatDateString(new Date(data), true, true, false) : "";
+                        }
+                    },
+                    {
+                        visible: false, data: 'fechaModificacion',
+                        render: function (data, type, row, meta) {
+                            return data ? formatDateString(new Date(data), true, true, false) : "";
+                        }
+                    },
+                    {
+                        data: null, width: '4%', filter: 'none', orderable: false, class: 'text-center',
+                        render: function (data, type, row, meta) {
+                            let defaultMainActions =
+                                '<div class="btn-group dropleft">' +
+                                '<button type="button" class="btnAcciones btn btn-sm btn-primary-custom dropdown-toggle" data-boundary="viewport" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">' +
+                                '<i class="fas fa-bolt"></i>' +
+                                '</button>' +
+                                '<div class="dropdown-menu-acciones dropdown-menu">';
+
+                            defaultMainActions += '<a class="dropdown-item btnEditar" href="#">Editar</a>';
+                            defaultMainActions += '<a class="dropdown-item btnVerPlanes" href="#">Ver planes</a>';
+
+                            if (parseInt("@esAdmin") === 1 && row.id === @Dominio.Constantes.General.IdEmpresaDemo)
+                                defaultMainActions += '<a class="dropdown-item text-danger btnEliminarHistorial" href="#">Eliminar historial</a>';
+
+                            if (row.estado === @((short)Dominio.Tipos.EstadosEmpresas.Inactivo))
+                                defaultMainActions += '<a class="dropdown-item btnActivarEmpresa text-success" href="#">Activar</a>';
+                            else
+                                defaultMainActions += '<a class="dropdown-item btnInactivarEmpresa text-danger" href="#">Inactivar</a>';
+
+                            if (parseInt("@esAdmin") === 1 )
+                                defaultMainActions += '<a class="dropdown-item text-danger btnEliminarHistorial7Anios" href="#">Eliminar historial de más de 7 años</a>';
+
+                            defaultMainActions += '</div></div>';
+                            return defaultMainActions;
+                        }
+                    }
+                ],
+                buttons: [
+                    {
+                        extend: "excelHtml5", sheetName: "Consultas", autoFilter: true,
+                        filename: 'ReporteEmpresas',
+                        exportOptions: {
+                            columns: ':not(.no-export)'
+                        },
+                        action: function (e, dt, button, config) {
+                            initLoadingSwal();
+                            let currentTable = this;
+                            setTimeout(function () {
+                                $.fn.dataTable.ext.buttons.excelHtml5.action.call(currentTable, e, dt, button, config);
+                            }, 1000);
+                        }
+                    }
+                ],
+                details: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                columnFilter: true,
+                drawCallback: function () {
+                    tippy(".span-acceso-buro", { content: "Tiene plan buró de crédito activo" });
+                    tippy(".span-acceso-evaluacion", { content: "Tiene plan de evaluación activo" });
+                    tippy(".span-inactivo", { content: "Empresa inactiva" });
+                    tippy(".span-demo", { content: "Empresa con plan de demostración" });
+                },
+                initComplete: function (e) {
+                    $('#tablaEmpresa').wrap("<div class='scrolledTable'></div>");
+                    hideLoader();
+                },
+                pageLength: 20,
+                order: []
+            };
+
+            tablaEmpresa = configDatatable(config);
+
+            $(".btnDescargar").on("click", function () {
+                tablaEmpresa.button(0).trigger();
+            });
+
+            //CRUD
+            $("#btnCrear").on("click", function () {
+                limpiarModal();
+                limpiarPlanEmpresa();
+                limpiarPlanEvaluacion();
+                limpiarPlanBuroCredito();
+                $("#btnNuevoPlanEmpresa").hide();
+                if (!$(".divAuditoriaEmpresa").hasClass("hidden"))
+                    $(".divAuditoriaEmpresa").addClass("hidden");
+
+                inputFile = $("#input-file").fileinput({
+                    language: "es",
+                    theme: "fa6",
+                    initialPreview: "",
+                    msgProcessing: "Procesando...",
+                    showClose: false,
+                    showRemove: false,
+                    showUpload: false,
+                    initialPreviewAsData: true,
+                    browseOnZoneClick: true,
+                    showCaption: false,
+                    showBrowse: false,
+                    showCancelButton: false,
+                    showCancel: false,
+                    overwriteInitial: true,
+                    allowedFileExtensions: ["jpg", "png", "jpeg"],
+                    layoutTemplates: {
+                        actions: '<div class="file-actions" hidden></div>'
+                    }
+                });
+
+                inputFileContrato = $("#input-contrato").fileinput({
+                    language: "es",
+                    theme: "fa6",
+                    initialPreview: "",
+                    showPreview: false,
+                    showCancel: false,
+                    showUpload: false,
+                    showRemove: false,
+                    browseClass: 'btn btn-primary-custom',
+                    allowedFileExtensions: ["pdf"],
+                    overwriteInitial: true,
+                    uploadAsync: false,
+                    inputGroupClass: 'input-group-sm'
+                });
+
+                $("#modalEmpresa").modal("show");
+            })
+
+            $("#btnDescargarContrato").on("click", function () {
+                let idEmpresa = $("#Id").val();
+                idEmpresa = parseInt(idEmpresa);
+                if (isNaN(idEmpresa))
+                    idEmpresa = 0;
+
+                if (idEmpresa === 0) {
+                    Swal.fire("¡Advertencia!", `No se pudo generar el reporte PDF porque no se ha generado la información`, "warning");
+                    return false;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("ObtenerContratoEmpresa", "Empresa")",
+                    data: { 'idEmpresa': idEmpresa },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    datatype: "json",
+                    beforeSend: function () {
+                        initLoadingSwal("Descargando Contrato PDF...");
+                    },
+                    success: function (data) {
+                        if (data) {
+                            let a = document.createElement('a');
+                            let url = window.URL.createObjectURL(data);
+                            a.href = url;
+                            a.download = `Contrato_${$("#Identificacion").val()}`;
+                            document.body.append(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
+                            swal.close();
+                        } else {
+                            Swal.fire("¡Error!", "No se pudo generar el reporte PDF", "error");
+                        }
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", error && error.responseJSON ? error.responseJSON.detail : (error && error.responseText ? `No se pudo generar el reporte PDF. ${error.responseText}` : `No se pudo generar el reporte PDF. `), "error");
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnEditar', function () {
+                initLoadingSwal("Procesando...");
+                limpiarModal();
+                limpiarPlanEmpresa();
+                limpiarPlanEvaluacion();
+                limpiarPlanBuroCredito();
+                let data = tablaEmpresa.rows($(this).closest("tr")).data()[0];
+                if (data.id > 0)
+                    $("#btnNuevoPlanEmpresa").show();
+
+                if (data) {
+                    $("#Id").val(data.id);
+                    $("#Identificacion").val(data.identificacion);
+                    $("#RazonSocial").val(data.razonSocial);
+                    $("#Direccion").val(data.direccion);
+                    $("#PersonaContacto").val(data.personaContacto);
+                    $("#Telefono").val(data.telefono);
+                    $("#Correo").val(data.correo);
+                    $("#Observaciones").val(data.observaciones);
+                    $("#IdAsesorComercialConfiable").val(data.idAsesorComercialConfiable).trigger("change");
+                    $("#IdAsesorComercialConfiable").selectpicker("refresh");
+                    if ($(".divAuditoriaEmpresa").hasClass("hidden"))
+                        $(".divAuditoriaEmpresa").removeClass("hidden");
+                    $("#spanUsuarioRegistro").text(data.nombreUsuarioRegistro ? data.nombreUsuarioRegistro : "N/A");
+                    $("#spanFechaRegistro").text(data.fechaCreacion ? formatDateString(new Date(data.fechaCreacion), true, true, false) : "N/A");
+                    $("#spanFechaModificacion").text(data.fechaModificacion ? formatDateString(new Date(data.fechaModificacion), true, true, false) : "N/A");
+                    if (data.fechaCobroRecurrente)
+                        $("#FechaCobroRecurrente").datepicker("setDate", new Date(data.fechaCobroRecurrente)).datepicker("update");
+
+                    let planEmpresa = data.planesEmpresas;
+                    if (planEmpresa !== null && planEmpresa !== undefined) {
+                        if (planEmpresa.planDemostracion) {
+                            $('#switchPlanDemo').prop('checked', true);
+                            $('#switchPlanDemo').trigger("change");
+                        }
+
+                        if (planEmpresa.bloquearConsultas) {
+                            $('#switchBloqueoConsultas').prop('checked', true);
+                            $('#switchBloqueoConsultas').trigger("change");
+                        }
+
+                        $("#PlanEmpresa_Id").val(planEmpresa.id);
+                        $("#PlanEmpresa_BloquearConsultas").val(planEmpresa.bloquearConsultas);
+                        $("#PlanEmpresa_NombrePlan").val(planEmpresa.nombrePlan);
+                        if (planEmpresa.tipoPlan !== @((short)Dominio.Tipos.PlanesIdentificaciones.Unificado)) {
+                            $('#switchTipoPlan').prop('checked', false);
+                            $('#switchTipoPlan').trigger("change");
+                            $("#PlanEmpresa_ValorPlanAnualRuc").val(planEmpresa.valorPlanAnualRuc);
+                            $("#PlanEmpresa_ValorPlanAnualCedula").val(planEmpresa.valorPlanAnualCedula);
+                            $("#PlanEmpresa_ValorPlanMensualRuc").val(planEmpresa.valorPlanMensualRuc);
+                            $("#PlanEmpresa_ValorPlanMensualCedula").val(planEmpresa.valorPlanMensualCedula);
+                            $("#PlanEmpresa_NumeroConsultasRuc").val(planEmpresa.numeroConsultasRuc);
+                            $("#PlanEmpresa_NumeroConsultasCedula").val(planEmpresa.numeroConsultasCedula);
+                            $("#PlanEmpresa_ValorPorConsultaRucs").val(planEmpresa.valorPorConsultaRucs);
+                            $("#PlanEmpresa_ValorPorConsultaCedulas").val(planEmpresa.valorPorConsultaCedulas);
+                            $("#PlanEmpresa_ValorConsultaAdicionalRucs").val(planEmpresa.valorConsultaAdicionalRucs);
+                            $("#PlanEmpresa_ValorConsultaAdicionalCedulas").val(planEmpresa.valorConsultaAdicionalCedulas);
+                        } else {
+                            $('#switchTipoPlan').prop('checked', true);
+                            $('#switchTipoPlan').trigger("change");
+                            $("#PlanEmpresa_ValorPlanAnual").val(planEmpresa.valorPlanAnual);
+                            $("#PlanEmpresa_ValorPlanMensual").val(planEmpresa.valorPlanMensual);
+                            $("#PlanEmpresa_NumeroConsultas").val(planEmpresa.numeroConsultas);
+                            $("#PlanEmpresa_ValorPorConsulta").val(planEmpresa.valorPorConsulta);
+                            $("#PlanEmpresa_ValorConsultaAdicional").val(planEmpresa.valorConsultaAdicional);
+                        }
+                    }
+
+                    let planBuroCredito = data.planBuroCredito;
+                    if (planBuroCredito !== null && planBuroCredito !== undefined) {
+                        $('#switchHabilitarBuroCredito').prop('checked', true);
+                        $('#switchHabilitarBuroCredito').trigger("change");
+                        $("#PlanBuroCredito_Id").val(planBuroCredito.id);
+                        if (planBuroCredito.bloquearConsultas) {
+                            $('#switchBloqueoConsultasBuro').prop('checked', true);
+                            $('#switchBloqueoConsultasBuro').trigger("change");
+                        } else {
+                            $('#switchBloqueoConsultasBuro').prop('checked', false);
+                            $('#switchBloqueoConsultasBuro').trigger("change");
+                        }
+
+                        if (planBuroCredito.consultasCompartidas) {
+                            $('#switchConsultasCompartidas').prop('checked', true);
+                            $('#switchConsultasCompartidas').trigger("change");
+                        } else {
+                            $('#switchConsultasCompartidas').prop('checked', false);
+                            $('#switchConsultasCompartidas').trigger("change");
+                        }
+
+                        if (planBuroCredito.modeloCooperativas) {
+                            $('#switchModeloCooperativas').prop('checked', true);
+                            $('#switchModeloCooperativas').trigger("change");
+                        } else {
+                            $('#switchModeloCooperativas').prop('checked', false);
+                            $('#switchModeloCooperativas').trigger("change");
+                        }
+
+                        $("#PlanBuroCredito_NumeroMaximoConsultas").val(planBuroCredito.numeroMaximoConsultas);
+                        $("#PlanBuroCredito_NumeroMaximoConsultasCompartidas").val(planBuroCredito.numeroMaximoConsultasCompartidas);
+                        $("#PlanBuroCredito_ValorPlanBuroCredito").val(planBuroCredito.valorPlanBuroCredito);
+                        $("#PlanBuroCredito_ValorConsulta").val(planBuroCredito.valorConsulta);
+
+                        $("#PlanBuroCredito_PersistenciaCache").val(planBuroCredito.persistenciaCache);
+                        $("#PlanBuroCredito_Fuente").val(planBuroCredito.fuente).trigger("change");
+                        $("#PlanBuroCredito_Fuente").data('combobox', 'refresh');
+                        $(".divNuevoPlanBuro").removeClass("hidden");
+                    }
+
+                    let planEvaluacion = data.planesEvaluaciones;
+                    if (planEvaluacion !== null && planEvaluacion !== undefined) {
+                        $('#switchHabilitarEvaluaciones').prop('checked', true);
+                        $('#switchHabilitarEvaluaciones').trigger("change");
+                        $("#PlanEvaluacion_Id").val(planEvaluacion.id);
+                        if (planEvaluacion.bloquearConsultas) {
+                            $('#switchBloqueoConsultasEvaluaciones').prop('checked', true);
+                            $('#switchBloqueoConsultasEvaluaciones').trigger("change");
+                        } else {
+                            $('#switchBloqueoConsultasEvaluaciones').prop('checked', false);
+                            $('#switchBloqueoConsultasEvaluaciones').trigger("change");
+                        }
+                        if (planEvaluacion.numeroConsultas === @int.MaxValue) {
+                            $('#switchMaxConsultasEvaluaciones').prop('checked', true);
+                            $('#switchMaxConsultasEvaluaciones').trigger("change");
+                        } else {
+                            $('#switchMaxConsultasEvaluaciones').prop('checked', false);
+                            $('#switchMaxConsultasEvaluaciones').trigger("change");
+                        }
+                        $("#PlanEvaluacion_BloquearConsultas").val(planEvaluacion.bloquearConsultas);
+                        $("#PlanEvaluacion_NumeroConsultas").val(planEvaluacion.numeroConsultas);
+                        $("#PlanEvaluacion_ValorConsulta").val(planEvaluacion.valorConsulta);
+                        $("#PlanEvaluacion_ValorConsultaAdicional").val(planEvaluacion.valorConsultaAdicional);
+                        $(".divNuevoPlanEvaluacion").removeClass("hidden");
+                    }
+
+                    inputFile.fileinput('destroy');
+                    inputFile = $("#input-file").fileinput({
+                        language: "es",
+                        theme: "fa6",
+                        msgProcessing: "Procesando...",
+                        initialPreview: data.baseImagen && data.baseImagen !== '' ? data.baseImagen : "",
+                        showClose: false,
+                        showRemove: false,
+                        showUpload: false,
+                        initialPreviewAsData: true,
+                        browseOnZoneClick: true,
+                        showCaption: false,
+                        showBrowse: false,
+                        showCancelButton: false,
+                        showCancel: false,
+                        overwriteInitial: true,
+                        allowedFileExtensions: ["jpg", "png", "jpeg"],
+                        layoutTemplates: {
+                            actions: '<div class="file-actions" hidden></div>'
+                        }
+                    });
+
+                    inputFileContrato.fileinput('destroy');
+                    inputFileContrato = $("#input-contrato").fileinput({
+                        language: "es",
+                        theme: "fa6",
+                        initialPreview: data.rutaContrato && data.rutaContrato !== '' ? data.rutaContrato : "",
+                        showPreview: false,
+                        showCancel: false,
+                        showUpload: false,
+                        showRemove: false,
+                        browseClass: 'btn btn-primary-custom',
+                        allowedFileExtensions: ["pdf"],
+                        overwriteInitial: true,
+                        uploadAsync: false,
+                        inputGroupClass: 'input-group-sm'
+                    });
+
+                    if (data.rutaContrato && data.rutaContrato !== '')
+                        $("#btnDescargarContrato").show();
+                }
+
+                $("#modalEmpresa").modal("show");
+                Swal.close();
+            });
+
+            $("#formEmpresa").submit(function (e) {
+                e.preventDefault();
+
+                if ($("#Identificacion").val().trim() === "") { Swal.fire("¡Advertencia!", "La identificación no puede ir vacia", "warning"); return false }
+                if ($("#RazonSocial").val().trim() === "") { Swal.fire("¡Advertencia!", "La razón social no puede ir vacia", "warning"); return false }
+                if ($("#PersonaContacto").val().trim() === "") { Swal.fire("¡Advertencia!", "La persona de contacto no puede ir vacia", "warning"); return false }
+                if ($("#Telefono").val().trim() === "") { Swal.fire("¡Advertencia!", "El teléfono no puede ir vacio", "warning"); return false }
+                if ($("#Correo").val().trim() === "") { Swal.fire("¡Advertencia!", "El correo no puede ir vacio", "warning"); return false }
+                if (!isEmail($("#Correo").val().trim())) { Swal.fire("¡Advertencia!", "El correo electrónico ingresado no es válido", "warning"); return false }
+
+                let planUnificado = $("#switchTipoPlan").is(":checked");
+
+                if ($("#PlanEmpresa_NombrePlan").val().trim() === "") { Swal.fire("¡Advertencia!", "El Nombre del Plan no puede ir vacio", "warning"); return false }
+                if (!planUnificado) {
+                    if ($("#PlanEmpresa_NumeroConsultasRuc").val().trim() === "") { Swal.fire("¡Advertencia!", "El Número de Consultas por Ruc no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_NumeroConsultasCedula").val().trim() === "") { Swal.fire("¡Advertencia!", "El Número de Consultas por Cédulas no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPlanAnualRuc").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor del Plan Anual Rucs no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPlanAnualCedula").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor del Plan Anual Cédulas no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPlanMensualRuc").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor del Plan Mensual Rucs no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPlanMensualCedula").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor del Plan Mensual Cédulas no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPorConsultaRucs").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor por Consulta de Rucs no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPorConsultaCedulas").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor por Consulta de Cédulas no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorConsultaAdicionalRucs").val().trim() === "") { wal.fire("¡Advertencia!", "El Valor por Consulta de Rucs Adicionales no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorConsultaAdicionalCedulas").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor por Consulta de Cédulas Adicionales no puede ir vacio", "warning"); return false }
+                } else {
+                    if ($("#PlanEmpresa_NumeroConsultas").val().trim() === "") { Swal.fire("¡Advertencia!", "El Número de Consultas no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPlanAnual").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor del Plan Anual no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPlanMensual").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor del Plan Mensual no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorPorConsulta").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor por Consulta no puede ir vacio", "warning"); return false }
+                    if ($("#PlanEmpresa_ValorConsultaAdicional").val().trim() === "") { wal.fire("¡Advertencia!", "El Valor por Consulta Adicional no puede ir vacio", "warning"); return false }
+                }
+
+                if ($("#switchHabilitarEvaluaciones").is(":checked") && $("#PlanEvaluacion_NumeroConsultas").val().trim() === "") { Swal.fire("¡Advertencia!", "El Número de Consultas de Evaluación no puede ir vacio", "warning"); return false }
+                if ($("#switchHabilitarEvaluaciones").is(":checked") && $("#PlanEvaluacion_ValorConsulta").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor por Consulta de Evaluación no puede ir vacio", "warning"); return false }
+                if ($("#switchHabilitarEvaluaciones").is(":checked") && $("#PlanEvaluacion_ValorConsultaAdicional").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor por Consulta Adicional de Evaluación no puede ir vacio", "warning"); return false }
+
+                if ($("#switchHabilitarBuroCredito").is(":checked") && ($("#PlanBuroCredito_Fuente").val() === "0" || $("#PlanBuroCredito_Fuente").val() === "" || $("#PlanBuroCredito_Fuente").val() === null)) { Swal.fire("¡Advertencia!", "Debe seleccionar una Fuente de Buro", "warning"); return false; }
+                if ($("#switchHabilitarBuroCredito").is(":checked") && $("#PlanBuroCredito_NumeroMaximoConsultas").val().trim() === "") { Swal.fire("¡Advertencia!", "El Número Máximo de Consultas para el Buró de Crédito no puede ir vacio", "warning"); return false }
+                if ($("#switchConsultasCompartidas").is(":checked") && $("#switchHabilitarBuroCredito").is(":checked") && $("#PlanBuroCredito_NumeroMaximoConsultasCompartidas").val().trim() === "") { Swal.fire("¡Advertencia!", "El Número Máximo de Consultas (Credenciales Internas) para el Buró de Crédito no puede ir vacio", "warning"); return false }
+                if ($("#switchHabilitarBuroCredito").is(":checked") && $("#PlanBuroCredito_ValorPlanBuroCredito").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor del Plan para el Buró de Crédito no puede ir vacio", "warning"); return false }
+                if ($("#switchHabilitarBuroCredito").is(":checked") && $("#PlanBuroCredito_ValorConsulta").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor por Consulta para el Buró de Crédito no puede ir vacio", "warning"); return false }
+                if ($("#switchHabilitarBuroCredito").is(":checked") && $("#PlanBuroCredito_PersistenciaCache").val().trim() === "") { Swal.fire("¡Advertencia!", "El Valor de Persistencia no puede ir vacio", "warning"); return false }
+
+                let inputLogo;
+                if ($('#input-file').prop('files').length > 0)
+                    inputLogo = $('#inputBaseLogo').val();
+
+                if (inputLogo)
+                    $("#BaseImagen").val(inputLogo);                     
+
+                let data = new FormData();
+                let dataForm = $('#formEmpresa').serializeArray();
+                $.each(dataForm, function (key, input) {
+                    data.append(input.name, input.value);
+                });
+
+                let fileData = $('input[name="input-contrato"]')[0].files;
+                for(let i = 0; i< fileData.length; i++) {
+                    data.append("input-contrato", fileData[i]);
+                }
+
+                Swal.fire({
+                    title: '¿Está seguro de registrar esta información?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Registrar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: "@Url.Action("Guardar","Empresa")",
+                            method: 'POST',
+                            cache: false,
+                            enctype: 'multipart/form-data',
+                            processData: false,
+                            contentType: false,
+                            data: data,
+                            success: function (data) {
+                                Swal.fire('¡Registro Exitoso!', 'Se ha guardado con éxito la información ingresada', "success").then((value) => {
+                                    tablaEmpresa.ajax.reload(null, true);
+                                    $("#modalEmpresa").modal("hide");
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            })
+
+            $('.table tbody').on('click', '.btnEliminarHistorial', function () {
+                let data = tablaEmpresa.rows($(this).closest("tr")).data()[0];
+                Swal.fire({
+                    title: '¿Está seguro de eliminar el historial de esta empresa?',
+                    text: 'Se eliminará el historial del mes actual',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Eliminar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: "@Url.Action("EliminarHistorial", "Empresa")",
+                            method: 'POST',
+                            cache: false,
+                            datatype: "json",
+                            data: { id: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Eliminación Exitosa!', "El historial del mes actual se ha eliminado correctamente", "success").then((value) => {
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+            $('.table tbody').on('click', '.btnEliminarHistorial7Anios', function () {
+                let data = tablaEmpresa.rows($(this).closest("tr")).data()[0];
+                Swal.fire({
+                    title: '¿Está seguro de eliminar las consultas de esta empresa?',
+                    text: 'Se eliminarán todas las consultas y evaluaciones realizadas hace más de 7 años. Esta acción no podrá ser revertida.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    color: "#ff1100",
+                    confirmButtonText: 'Eliminar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: "@Url.Action("EliminarHistorial7anios", "Empresa")",
+                            method: 'POST',
+                            cache: false,
+                            datatype: "json",
+                            data: { id: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Eliminación Exitosa!', "El historial de más de 7 años se ha eliminado correctamente", "success").then((value) => {
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnInactivarEmpresa', function () {
+                let data = tablaEmpresa.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de inactivar esta empresa?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Inactivar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: "@Url.Action("InactivarEmpresa","Empresa")",
+                            method: 'POST',
+                            cache: false,
+                            datatype: "json",
+                            data: { id: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Inactivación Exitosa!', "Se ha inactivado la empresa correctamente", "success").then((value) => {
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnActivarEmpresa', function () {
+                let data = tablaEmpresa.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de activar esta empresa?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Activar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: "@Url.Action("ActivarEmpresa","Empresa")",
+                            method: 'POST',
+                            cache: false,
+                            datatype: "json",
+                            data: { id: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Activación Exitosa!', "Se ha activado la empresa correctamente", "success").then((value) => {
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnVerPlanes', function () {
+                initLoadingSwal("Procesando...");
+                $('.nav-tabs a:first').tab('show');
+                let data = tablaEmpresa.row($(this).closest('tr')).data();
+                $("#inputIdEmpresa").val(data.id);
+                tablaPlanesEmpresa.ajax.reload(() => {
+                    $("#modalHistorialPlanes").modal("show");
+                    Swal.close();
+                });
+
+                if (data.razonSocial == null)
+                    $('#labelEmpresaPlan').html(`<span>N/A</span>`);
+                else
+                    $('#labelEmpresaPlan').html(data.razonSocial);
+
+                if (data.identificacion == null)
+                    $('#labelIdentificacionEmpresa').html(`<span>N/A</span>`);
+                else
+                    $('#labelIdentificacionEmpresa').html(data.identificacion);
+
+                tablaPlanesConsultasEvaluaciones.ajax.reload();
+                tablaPlanesConsultasBuro.ajax.reload();
+            });
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Formulario
+            //Consulta
+            $("#btnBuscarIdentificacion").click(function () {
+                let identificacion = $("#Identificacion").val().trim();
+                if (!identificacion || identificacion === "" || identificacion.length < 10) { Swal.fire("¡Advertencia!", "La identificación debe tener mínimo 10 caracteres", "warning"); return; }
+
+                $.ajax({
+                    url: '@Url.Action("BuscarIdentificacion", "Empresa")',
+                    method: 'POST',
+                    cache: false,
+                    data: { identificacion: identificacion },
+                    beforeSend: function () {
+                        initLoadingSwal();
+                    },
+                    success: function (data) {
+                        $("#RazonSocial").val(data.razonSocial);
+                        $("#Direccion").val(data.direccion);
+                        $("#PersonaContacto").val(data.agenteRepresentante);
+                        Swal.close();
+                    },
+                    error: function (error) {
+                        Toast.fire({
+                            icon: 'warning',
+                            title: error.responseJSON.detail
+                        });
+                        console.log(error);
+                    }
+                });
+            });
+
+            //Plan Empresa
+            $("#btnNuevoPlanEmpresa").on("click", function () {
+                limpiarPlanEmpresa();
+            });
+
+            $('#PlanEmpresa_ValorPlanMensualRuc, #PlanEmpresa_NumeroConsultasRuc').keyup(function () {
+                recalcularValorRuc();
+            });
+
+            $('#PlanEmpresa_ValorPlanMensualCedula, #PlanEmpresa_NumeroConsultasCedula').keyup(function () {
+                recalcularValorCedula();
+            });
+
+            $('#PlanEmpresa_ValorPlanMensual, #PlanEmpresa_NumeroConsultas').keyup(function () {
+                recalcularValorUnificado();
+            });
+
+            $("#switchMaxConsultas").on("change", function () {
+                $("#PlanEmpresa_MaximoNumeroConsultas").val($(this).is(":checked"));
+                let planUnificado = $("#switchTipoPlan").is(":checked");
+                if ($(this).is(":checked")) {
+                    let intMaximo = @int.MaxValue;
+                    if (!planUnificado) {
+                        $("#PlanEmpresa_NumeroConsultasRuc").val(intMaximo);
+                        $("#PlanEmpresa_NumeroConsultasCedula").val(intMaximo);
+                        $("#PlanEmpresa_ValorPorConsultaRucs").removeAttr("readonly");
+                        $("#PlanEmpresa_ValorPorConsultaCedulas").removeAttr("readonly");
+                    } else {
+                        $("#PlanEmpresa_NumeroConsultas").val(intMaximo);
+                        $("#PlanEmpresa_ValorPorConsulta").removeAttr("readonly");
+                    }
+                }
+                else {
+                    if (!planUnificado) {
+                        $("#PlanEmpresa_NumeroConsultasRuc").val("0");
+                        $("#PlanEmpresa_NumeroConsultasCedula").val("0");
+                        $("#PlanEmpresa_ValorPorConsultaRucs").attr("readonly", "readonly");
+                        $("#PlanEmpresa_ValorPorConsultaCedulas").attr("readonly", "readonly");
+                    } else {
+                        $("#PlanEmpresa_NumeroConsultas").val("0");
+                        $("#PlanEmpresa_ValorPorConsulta").attr("readonly", "readonly");
+                    }
+                }
+            });
+
+            $("#switchBloqueoConsultas").on("change", function (e) {
+                $("#PlanEmpresa_BloquearConsultas").val($(this).prop("checked"));
+            });
+
+            $("#switchTipoPlan").on("change", function (e) {
+                let valor = $(this).prop("checked");
+                $("#PlanUnificado").val(valor);
+                limpiarPlanEmpresaDividido();
+                limpiarPlanEmpresaUnificado();
+                if (valor) {
+                    $(".tablaPlanDividido").addClass("hidden");
+                    $(".tablaPlanUnificado").removeClass("hidden");
+                    $("#tablaPlanes").find("td > input").removeAttr("required");
+                    $("#tablaPlanesUnificado").find("td > input").attr("required", "required");
+                }
+                else {
+                    $(".tablaPlanDividido").removeClass("hidden");
+                    $(".tablaPlanUnificado").addClass("hidden");
+                    $("#tablaPlanes").find("td > input").attr("required", "required");
+                    $("#tablaPlanesUnificado").find("td > input").removeAttr("required");
+                }
+            });
+
+            $("#switchPlanDemo").on("change", function (e) {
+                let valor = $(this).prop("checked");
+                $("#PlanDemostracion").val(valor);
+                if (valor) {
+                    $('#switchTipoPlan').prop('checked', true);
+                    $('#switchTipoPlan').trigger("change");
+                    $('#switchTipoPlan').prop('disabled', true);
+
+                    $('#switchBloqueoConsultas').prop('checked', true);
+                    $('#switchBloqueoConsultas').trigger("change");
+                    $('#switchBloqueoConsultas').prop('disabled', true);
+
+                    $('#switchMaxConsultas').prop('checked', false);
+                    $('#switchMaxConsultas').trigger("change");
+                    $('#switchMaxConsultas').prop('disabled', true);
+
+                    $("#PlanEmpresa_NombrePlan").val("PLAN DEMOSTRACIÓN");
+                    $("#PlanEmpresa_NombrePlan").prop("readonly", true);
+
+                    $("#PlanEmpresa_ValorPlanAnual").val("0").trigger("change");
+                    $("#PlanEmpresa_ValorPlanMensual").val("0").trigger("change");
+                    $("#PlanEmpresa_NumeroConsultas").val("").trigger("change");
+                    $("#PlanEmpresa_NumeroConsultas").focus();
+                    $("#PlanEmpresa_ValorConsultaAdicional").val("0").trigger("change");
+                }
+                else {
+                    $('#switchTipoPlan').prop('checked', false);
+                    $('#switchTipoPlan').trigger("change");
+                    $('#switchTipoPlan').prop('disabled', false);
+
+                    $('#switchBloqueoConsultas').prop('checked', false);
+                    $('#switchBloqueoConsultas').trigger("change");
+                    $('#switchBloqueoConsultas').prop('disabled', false);
+
+                    $('#switchMaxConsultas').prop('checked', false);
+                    $('#switchMaxConsultas').trigger("change");
+                    $('#switchMaxConsultas').prop('disabled', false);
+
+                    $("#PlanEmpresa_NombrePlan").val("");
+                    $("#PlanEmpresa_NombrePlan").prop("readonly", false);
+
+                    $("#PlanEmpresa_ValorPlanAnual").val("").trigger("change");
+                    $("#PlanEmpresa_ValorPlanMensual").val("").trigger("change");
+                    $("#PlanEmpresa_NumeroConsultas").val("").trigger("change");
+                    $("#PlanEmpresa_ValorPorConsulta").val("0").trigger("change");
+                    $("#PlanEmpresa_ValorConsultaAdicional").val("").trigger("change");
+                }
+            });
+
+            //Plan Buró
+            $("#btnNuevoPlanBuroCredito").click(function () {
+                limpiarPlanBuroCredito();
+            });
+
+            $('#PlanBuroCredito_ValorPlanBuroCredito, #PlanBuroCredito_NumeroMaximoConsultas').keyup(function () {
+                recalcularValorConsultaBuro();
+            });
+
+            $("#switchHabilitarBuroCredito").on("change", function (e) {
+                limpiarPlanBuroCredito();
+                $("#HabilitarPlanBuroCredito").val($(this).is(":checked"));
+                if ($(this).is(":checked")) {
+                    $(".divPlanesBuroCredito").show();
+                    $('#switchBloqueoConsultasBuro').prop('checked', true);
+                    $('#switchBloqueoConsultasBuro').trigger("change");
+                    $("#PlanBuroCredito_BloquearConsultas").val(true);
+                    $("#tablaPlanesBuroCredito").find("td > input:not(:disabled)").attr("required", "required");
+                }
+                else {
+                    $(".divPlanesBuroCredito").hide();
+                    $('#switchBloqueoConsultasBuro').prop('checked', false);
+                    $('#switchBloqueoConsultasBuro').trigger("change");
+                    $("#PlanBuroCredito_BloquearConsultas").val(false);
+                    $("#tablaPlanesBuroCredito").find("td > input:not(:disabled)").removeAttr("required");
+                }
+            });
+
+            $("#switchBloqueoConsultasBuro").on("change", function () {
+                $("#PlanBuroCredito_BloquearConsultas").val($(this).is(":checked"));
+            });
+
+            $("#switchConsultasCompartidas").on("change", function () {
+                $("#PlanBuroCredito_ConsultasCompartidas").val($(this).is(":checked"));
+                $("#PlanBuroCredito_NumeroMaximoConsultasCompartidas").val("");
+                if ($(this).is(":checked")) {
+                    $("#PlanBuroCredito_NumeroMaximoConsultasCompartidas").removeAttr("disabled");
+                } else{
+                    $("#PlanBuroCredito_NumeroMaximoConsultasCompartidas").attr("disabled", "disabled");
+                }
+            });
+
+            $("#switchModeloCooperativas").on("change", function () {
+                $("#PlanBuroCredito_ModeloCooperativas").val($(this).is(":checked"));
+            });
+
+            //Plan Evaluación
+            $("#btnNuevoPlanEvaluacion").click(function () {
+                limpiarPlanEvaluacion();
+            });
+
+            $("#switchBloqueoConsultasEvaluaciones").on("change", function () {
+                $("#PlanEvaluacion_BloquearConsultas").val($(this).is(":checked"));
+            });
+
+            $("#switchMaxConsultasEvaluaciones").on("change", function () {
+                $("#PlanEvaluacion_MaximoNumeroConsultas").val($(this).is(":checked"));
+                if ($(this).is(":checked")) {
+                    let intMaximo = @int.MaxValue;
+                    $("#PlanEvaluacion_NumeroConsultas").val(intMaximo);
+                    $("#PlanEvaluacion_NumeroConsultas").attr("readonly", "readonly");
+                }
+                else {
+                    $("#PlanEvaluacion_NumeroConsultas").val("0");
+                    $("#PlanEvaluacion_NumeroConsultas").removeAttr("readonly");
+                }
+            });
+
+            $("#switchHabilitarEvaluaciones").on("change", function () {
+                limpiarPlanEvaluacion();
+                $("#HabilitarPlanEvaluacion").val($(this).is(":checked"));
+                if ($(this).is(":checked")) {
+                    $(".divTablaEvaluaciones").removeClass("hidden");
+                    $("#tablaPlanesEvaluacion").find("td > input").attr("required", "required");
+                } else {
+                    $(".divTablaEvaluaciones").addClass("hidden");
+                    $("#tablaPlanesEvaluacion").find("td > input").removeAttr("required");
+                }
+            });
+
+            $("#input-file").on("change", function () {
+                compress($(this).prop('files')[0], "inputBaseLogo");
+            });            
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Planes Empresa
+            let configTablaPlanes = {
+                id: "tablaPlanesEmpresa",
+                dom: "ftipr",
+                ajax: {
+                    url: '@Url.Action("ListadoPlanesEmpresa", "Empresa")',
+                    method: 'POST',
+                    cache: false,
+                    data: function (d) {
+                        let empresa = $("#inputIdEmpresa").val();
+                        return { idEmpresa: parseInt(empresa) };
+                    },
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    {
+                        width: '1%', className: "details-control", filter: 'none', data: null, defaultContent: "", orderable: false
+                    },
+                    {
+                        width: '24%', data: 'nombrePlan',
+                        render: function (data, type, row) {
+                            return row.planDemostracion ? `${data} <br /><span class="badge badge-info">PLAN DEMOSTRACIÓN</span>` : data;
+                        }
+                    },
+                    {
+                        width: '15%', data: 'numeroConsultasRuc', className: 'text-center',
+                        render: function (data, type, row) {
+                            let esUnificado = row.tipoPlan === @((short)Dominio.Tipos.PlanesIdentificaciones.Unificado);
+                            if (!esUnificado)
+                                return row.esValorMaximoCedula ? `MAX` : data;
+                            else
+                                return 'N/A';
+                        }
+                    },
+                    {
+                        width: '15%', data: 'numeroConsultasCedula', className: 'text-center',
+                        render: function (data, type, row) {
+                            let esUnificado = row.tipoPlan === @((short)Dominio.Tipos.PlanesIdentificaciones.Unificado);
+                            if (!esUnificado)
+                                return row.esValorMaximoCedula ? `MAX` : data;
+                            else
+                                return 'N/A';
+                        }
+                    },
+                    {
+                        width: '15%', data: 'numeroConsultas', className: 'text-center',
+                        render: function (data, type, row) {
+                            let esUnificado = row.tipoPlan === @((short)Dominio.Tipos.PlanesIdentificaciones.Unificado);
+                            if (esUnificado)
+                                return row.esValorMaximo ? `MAX` : data;
+                            else
+                                return 'N/A';
+                        }
+                    },
+                    {
+                        width: '15%', data: 'fechaCreacion', className: 'text-center',
+                        render: function (data, type, row) {
+                            return formatDateString(new Date(data), true, true, true)
+                        }
+                    },
+                    {
+                        width: '10%', data: 'estado', className: 'Estado text-center',
+                        render: function (data, type, row) {
+                            let estado;
+                            if (data === @((short)Dominio.Tipos.EstadosPlanesEmpresas.Activo))
+                                estado = `<span name="spanActivo" class="text-center badge badge-success"><i class="fas fa-check-circle mr-2"></i>Activo</span>`;
+                            else if (data === @((short)Dominio.Tipos.EstadosPlanesEmpresas.Inactivo))
+                                estado = `<span name="spanInactivo" class="text-center badge badge-danger"><i class="fas fa-minus-circle mr-2"></i>Inactivo</span>`;
+                            return estado;
+                        }
+                    },
+                    {
+                        width: '5%', data: 'estado', filter: 'none', className: 'Accion text-center', orderable: false,
+                        render: function (data, type, row) {
+                            let boton;
+                            if (data === @((short)Dominio.Tipos.EstadosPlanesEmpresas.Activo))
+                                boton = "<button type='button' class='btn btn-sm btn-danger btnInactivarPlanEmpresa' data-tippy-content='Inactivar plan'><i class='fa-solid fa-ban'></i></button>";
+                            else if (data === @((short)Dominio.Tipos.EstadosPlanesEmpresas.Inactivo))
+                                boton = "<button type='button' class='btn btn-sm btn-success btnActivarPlanEmpresa' data-tippy-content='Activar plan'><i class='fa-solid fa-circle-check'></i></button>";
+                            return boton;
+                        }
+                    },
+                ],
+                details: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                columnFilter: true,
+                drawCallback: function () {
+                    tippy('[data-tippy-content]');
+                },
+                initComplete: function (e) {
+                    $('#tablaPlanesEmpresa').wrap("<div class='scrolledTable'></div>");
+                },
+                pageLength: 20,
+            };
+
+            tablaPlanesEmpresa = configDatatable(configTablaPlanes);
+
+            $('.table tbody').on('click', '.btnInactivarPlanEmpresa', function () {
+                let data = tablaPlanesEmpresa.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de inactivar este plan de empresa?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Inactivar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("InactivarPlanEmpresa", "Empresa")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idPlanEmpresa: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Inactivación Exitosa!', 'Se ha inactivado el plan de empresa correctamente', "success").then((value) => {
+                                    tablaPlanesEmpresa.ajax.reload();
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnActivarPlanEmpresa', function () {
+                let data = tablaPlanesEmpresa.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de activar este plan de empresa?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Activar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("ActivarPlanEmpresa", "Empresa")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idPlanEmpresa: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Activación Exitosa!', 'Se ha activado el plan de empresa correctamente', "success").then((value) => {
+                                    tablaPlanesEmpresa.ajax.reload();
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Planes Evaluaciones
+            let configTablaPlanesEvaluaciones = {
+                id: "tablaPlanesEvaluaciones",
+                dom: "ftipr",
+                ajax: {
+                    url: '@Url.Action("ListadoPlanesEvaluacion", "Empresa")',
+                    method: 'POST',
+                    cache: false,
+                    data: function (d) {
+                        let empresa = $("#inputIdEmpresa").val();
+                        return { idEmpresa: parseInt(empresa) };
+                    },
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    { width: '15%', data: 'numeroConsultas', className: 'text-center' },
+                    {
+                        width: '15%', data: 'valorConsulta', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    {
+                        width: '15%', data: 'valorConsultaAdicional', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    {
+                        width: '15%', data: 'bloquearConsultas', className: 'text-center',
+                        render: function (data, type, row) {
+                            return data ? "SI" : "NO";
+                        }
+                    },
+                    {
+                        width: '15%', data: 'fechaCreacion', className: 'text-center',
+                        render: function (data, type, row) {
+                            return formatDateString(new Date(data), true, true, true)
+                        }
+                    },
+                    {
+                        width: '20%', data: 'estado', className: 'Estado text-center',
+                        render: function (data, type, row) {
+                            let estado;
+                            if (data === @((short)Dominio.Tipos.EstadosPlanesEvaluaciones.Activo))
+                                estado = `<span name="spanActivo" class="text-center badge badge-success"><i class="fas fa-check-circle mr-2"></i>Activo</span>`;
+                            else if (data === @((short)Dominio.Tipos.EstadosPlanesEvaluaciones.Inactivo))
+                                estado = `<span name="spanInactivo" class="text-center badge badge-danger"><i class="fas fa-minus-circle mr-2"></i>Inactivo</span>`;
+                            return estado;
+                        }
+                    },
+                    {
+                        width: '5%', data: 'estado', filter: 'none', className: 'Accion text-center', orderable: false,
+                        render: function (data, type, row) {
+                            let boton;
+                            if (data === @((short)Dominio.Tipos.EstadosPlanesEvaluaciones.Activo))
+                                boton = "<button type='button' class='btn btn-sm btn-danger btnInactivarPlanEvaluacion' data-tippy-content='Inactivar plan'><i class='fa-solid fa-ban'></i></button>";
+                            else if (data === @((short)Dominio.Tipos.EstadosPlanesEvaluaciones.Inactivo))
+                                boton = "<button type='button' class='btn btn-sm btn-success btnActivarPlanEvaluacion' data-tippy-content='Activar plan'><i class='fa-solid fa-circle-check'></i></button>";
+                            return boton;
+                        }
+                    },
+                ],
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                columnFilter: true,
+                drawCallback: function () {
+                    tippy('[data-tippy-content]');
+                },
+                initComplete: function (e) {
+                    $('#tablaPlanesEvaluaciones').wrap("<div class='scrolledTable'></div>");
+                },
+                pageLength: 20,
+            };
+
+            tablaPlanesConsultasEvaluaciones = configDatatable(configTablaPlanesEvaluaciones);
+
+            $('.table tbody').on('click', '.btnInactivarPlanEvaluacion', function () {
+                let data = tablaPlanesConsultasEvaluaciones.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de inactivar este plan de evaluación?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Inactivar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("InactivarPlanEvaluacion", "Empresa")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idPlanEvaluacion: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Inactivación Exitosa!', 'Se ha inactivado el plan de evaluación correctamente', "success").then((value) => {
+                                    tablaPlanesConsultasEvaluaciones.ajax.reload();
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnActivarPlanEvaluacion', function () {
+                let data = tablaPlanesConsultasEvaluaciones.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de activar este plan de evaluación?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Activar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("ActivarPlanEvaluacion", "Empresa")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idPlanEvaluacion: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Activación Exitosa!', 'Se ha activado el plan de evaluación correctamente', "success").then((value) => {
+                                    tablaPlanesConsultasEvaluaciones.ajax.reload();
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Planes Buró de Crédito
+            let configTablaPlanesBuro = {
+                id: "tablaPlanesBuro",
+                dom: "ftipr",
+                ajax: {
+                    url: '@Url.Action("ListadoPlanesBuro", "Empresa")',
+                    method: 'POST',
+                    cache: false,
+                    data: function (d) {
+                        let empresa = $("#inputIdEmpresa").val();
+                        return { idEmpresa: parseInt(empresa) };
+                    },
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    {
+                        width: '15%', data: 'fuente', className: 'text-center',
+                    },
+                    {
+                        width: '15%', data: 'numeroMaximoConsultas', className: 'text-center',
+                        render: function (data, type, row) {
+                            return row.esNumMaxConsulta ? `MAX` : data;
+                        }
+                    },
+                    {
+                        width: '15%', data: 'valorPlanBuroCredito', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    {
+                        width: '15%', data: 'valorConsulta', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    {
+                        width: '15%', data: 'persistenciaCache', className: 'text-center',
+                        render: function (data, type, row) {
+                            return row.esPersistenciaCache ? `MAX` : data;
+                        }
+                    },
+                    {
+                        width: '15%', data: 'fechaCreacion', className: 'text-center',
+                        render: function (data, type, row) {
+                            return formatDateString(new Date(data), true, true, true)
+                        }
+                    },
+                    {
+                        width: '20%', data: 'estado', className: 'Estado text-center',
+                        render: function (data, type, row) {
+                            let estado;
+                            if (data === @((short)Dominio.Tipos.EstadosPlanesBuroCredito.Activo))
+                                estado = `<span name="spanActivo" class="text-center badge badge-success"><i class="fas fa-check-circle mr-2"></i>Activo</span>`;
+                            else if (data === @((short)Dominio.Tipos.EstadosPlanesBuroCredito.Inactivo))
+                                estado = `<span name="spanInactivo" class="text-center badge badge-danger"><i class="fas fa-minus-circle mr-2"></i>Inactivo</span>`;
+                            return estado;
+                        }
+                    },
+                    {
+                        width: '5%', data: 'estado', filter: 'none', className: 'Accion text-center', orderable: false,
+                        render: function (data, type, row) {
+                            let boton;
+                            if (data === @((short)Dominio.Tipos.EstadosPlanesBuroCredito.Activo))
+                                boton = "<button type='button' class='btn btn-sm btn-danger btnInactivarPlanBuro' data-tippy-content='Inactivar plan'><i class='fa-solid fa-ban'></i></button>";
+                            else if (data === @((short)Dominio.Tipos.EstadosPlanesBuroCredito.Inactivo))
+                                boton = "<button type='button' class='btn btn-sm btn-success btnActivarPlanBuro' data-tippy-content='Activar plan'><i class='fa-solid fa-circle-check'></i></button>";
+                            return boton;
+                        }
+                    },
+                ],
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                columnFilter: true,
+                drawCallback: function () {
+                    tippy('[data-tippy-content]');
+                },
+                initComplete: function (e) {
+                    $('#tablaPlanesBuro').wrap("<div class='scrolledTable'></div>");
+                },
+                pageLength: 20
+            }
+
+            tablaPlanesConsultasBuro = configDatatable(configTablaPlanesBuro);
+
+            $('.table tbody').on('click', '.btnInactivarPlanBuro', function () {
+                let data = tablaPlanesConsultasBuro.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de inactivar este plan de buró de crédito?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Inactivar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("InactivarPlanBuro", "Empresa")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idPlanBuro: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Inactivación Exitosa!', 'Se ha inactivado el plan de buró correctamente', "success").then((value) => {
+                                    tablaPlanesConsultasBuro.ajax.reload();
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+
+            $('.table tbody').on('click', '.btnActivarPlanBuro', function () {
+                let data = tablaPlanesConsultasBuro.row($(this).closest('tr')).data();
+
+                Swal.fire({
+                    title: '¿Está seguro de activar este plan de buró de crédito?',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Activar',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    backdrop: true,
+                    preConfirm: function () {
+                        return $.ajax({
+                            url: '@Url.Action("ActivarPlanBuro", "Empresa")',
+                            method: 'POST',
+                            cache: false,
+                            data: { idPlanBuro: data.id },
+                            success: function (data) {
+                                Swal.fire('¡Activación Exitosa!', 'Se ha activado el plan de buró correctamente', "success").then((value) => {
+                                    tablaPlanesConsultasBuro.ajax.reload();
+                                    tablaEmpresa.ajax.reload(null, true);
+                                });
+                            },
+                            error: function (error) {
+                                Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                                console.log(error);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+
+        //////////////////////////////////////////////////////////////////////////////////////////////
+        //Funciones & Otros
+        inputFile = $("#input-file").fileinput({
+            language: "es",
+            theme: "fa6",
+            initialPreview: "",
+            showClose: false,
+            showRemove: false,
+            msgProcessing: "Procesando...",
+            showUpload: false,
+            initialPreviewAsData: true,
+            browseOnZoneClick: true,
+            showCaption: false,
+            showBrowse: false,
+            showCancelButton: false,
+            showCancel: false,
+            overwriteInitial: true,
+            allowedFileExtensions: ["jpg", "png", "jpeg"],
+            layoutTemplates: {
+                actions: '<div class="file-actions" hidden></div>'
+            },
+        });
+
+        inputFileContrato = $("#input-contrato").fileinput({
+            language: "es",
+            theme: "fa6",
+            initialPreview: "",
+            showPreview: false,
+            showCancel: false,
+            showUpload: false, 
+            showRemove: false,
+            browseClass: 'btn btn-primary-custom',
+            allowedFileExtensions: ["pdf"],
+            overwriteInitial: true,
+            uploadAsync: false,
+            inputGroupClass: 'input-group-sm'
+        });
+
+        function recalcularValorRuc() {
+            let planMensualRuc = $("#PlanEmpresa_ValorPlanMensualRuc").val();
+            let numeroConsultasRuc = $("#PlanEmpresa_NumeroConsultasRuc").val();
+            if (planMensualRuc !== "" && numeroConsultasRuc !== "") {
+                let resultado = parseFloat(numeroConsultasRuc) === 0 ? 0 : planMensualRuc / numeroConsultasRuc;
+                $("#PlanEmpresa_ValorPorConsultaRucs").val(roundNumber(resultado, 2));
+            } else
+                $("#PlanEmpresa_ValorPorConsultaRucs").val("0");
+        }
+
+        function recalcularValorCedula() {
+            let planMensualCedula = $("#PlanEmpresa_ValorPlanMensualCedula").val();
+            let numeroConsultasCedula = $("#PlanEmpresa_NumeroConsultasCedula").val();
+            if (planMensualCedula !== "" && numeroConsultasCedula !== "") {
+                let resultado = parseFloat(numeroConsultasCedula) === 0 ? 0 : planMensualCedula / numeroConsultasCedula;
+                $("#PlanEmpresa_ValorPorConsultaCedulas").val(roundNumber(resultado, 2));
+            } else
+                $("#PlanEmpresa_ValorPorConsultaCedulas").val("0");
+        }
+
+        function recalcularValorUnificado() {
+            let planMensualCedula = $("#PlanEmpresa_ValorPlanMensual").val();
+            let numeroConsultasCedula = $("#PlanEmpresa_NumeroConsultas").val();
+            if (planMensualCedula !== "" && numeroConsultasCedula !== "") {
+                let resultado = parseFloat(numeroConsultasCedula) === 0 ? 0 : planMensualCedula / numeroConsultasCedula;
+                $("#PlanEmpresa_ValorPorConsulta").val(roundNumber(resultado, 2));
+            } else
+                $("#PlanEmpresa_ValorPorConsulta").val("0");
+        }
+
+        function recalcularValorConsultaBuro() {
+            let planAnualBuro = $("#PlanBuroCredito_ValorPlanBuroCredito").val();
+            let numeroConsultasBuro = $("#PlanBuroCredito_NumeroMaximoConsultas").val();
+            if (planAnualBuro !== "" && numeroConsultasBuro !== "") {
+                let resultado = parseFloat(numeroConsultasBuro) === 0 ? 0 : planAnualBuro / numeroConsultasBuro;
+                $("#PlanBuroCredito_ValorConsulta").val(roundNumber(resultado, 2));
+            } else
+                $("#PlanBuroCredito_ValorConsulta").val("0");
+        }
+
+        function limpiarModal() {
+            $("#Id").val("0");
+            $("#Identificacion").val("");
+            $("#RazonSocial").val("");
+            $("#Direccion").val("");
+            $("#PersonaContacto").val("");
+            $("#Telefono").val("");
+            $("#Correo").val("");
+            $("#IdAsesorComercialConfiable").val("").trigger("change");
+            $("#IdAsesorComercialConfiable").selectpicker("refresh");
+            $("#FechaCobroRecurrente").datepicker("setDate", "now");
+            $("#Observaciones").val("");
+            $("#spanUsuarioRegistro").text("");
+            $("#spanFechaRegistro").text("");
+            $("#spanFechaModificacion").text("");
+            if (!$(".divAuditoriaEmpresa").hasClass("hidden"))
+                $(".divAuditoriaEmpresa").addClass("hidden");
+            $("#HabilitarPlanEvaluacion").val(false);
+            $("#HabilitarPlanBuroCredito").val(false);
+            $('#switchHabilitarEvaluaciones').prop('checked', false);
+            $('#switchHabilitarEvaluaciones').trigger("change");
+            $('#switchHabilitarBuroCredito').prop('checked', false);
+            $('#switchHabilitarBuroCredito').trigger("change");
+            $(".divNuevoPlanEvaluacion").addClass("hidden");
+            $(".divNuevoPlanBuro").addClass("hidden");
+            $("#input-file").fileinput('clear');
+            $("#input-contrato").fileinput('clear');
+            inputFile.fileinput('destroy');
+            inputFileContrato.fileinput('destroy');
+            $("#btnDescargarContrato").hide();
+        }
+
+        function limpiarPlanEmpresa() {
+            $("#PlanEmpresa_Id").val("0");
+            $("#PlanEmpresa_BloquearConsultas").val(false);
+            $("#PlanEmpresa_PlanDemostracion").val(false);
+            $("#PlanEmpresa_NombrePlan").prop("readonly", false);
+            $("#PlanEmpresa_NombrePlan").val("");
+            limpiarPlanEmpresaDividido();
+            limpiarPlanEmpresaUnificado();
+            $("#PlanEmpresa_MaximoNumeroConsultas").val(false);
+            $("#switchBloqueoConsultas").prop('checked', false);
+            $("#switchBloqueoConsultas").trigger("change");
+            $('#switchBloqueoConsultas').prop('disabled', false);
+            $("#switchMaxConsultas").prop('checked', false);
+            $("#switchMaxConsultas").trigger("change");
+            $('#switchBloqueoConsultas').prop('disabled', false);
+            $("#switchTipoPlan").prop('checked', false);
+            $("#switchTipoPlan").trigger("change");
+            $('#switchTipoPlan').prop('disabled', false);
+            $("#switchPlanDemo").prop('checked', false);
+            $("#switchPlanDemo").trigger("change");
+        }
+
+        function limpiarPlanEmpresaDividido() {
+            $("#PlanEmpresa_ValorPlanAnualRuc").val("");
+            $("#PlanEmpresa_ValorPlanAnualCedula").val("");
+            $("#PlanEmpresa_ValorPlanMensualRuc").val("");
+            $("#PlanEmpresa_ValorPlanMensualCedula").val("");
+            $("#PlanEmpresa_NumeroConsultasRuc").val("");
+            $("#PlanEmpresa_NumeroConsultasCedula").val("");
+            $("#PlanEmpresa_ValorPorConsultaRucs").val("0");
+            $("#PlanEmpresa_ValorPorConsultaCedulas").val("0");
+            $("#PlanEmpresa_ValorConsultaAdicionalRucs").val("");
+            $("#PlanEmpresa_ValorConsultaAdicionalCedulas").val("");
+        }
+
+        function limpiarPlanEmpresaUnificado() {
+            $("#PlanEmpresa_ValorPlanAnual").val("");
+            $("#PlanEmpresa_ValorPlanMensual").val("");
+            $("#PlanEmpresa_NumeroConsultas").val("");
+            $("#PlanEmpresa_ValorPorConsulta").val("0");
+            $("#PlanEmpresa_ValorConsultaAdicional").val("");
+        }
+
+        function limpiarPlanEvaluacion() {
+            $('#switchBloqueoConsultasEvaluaciones').prop('checked', false);
+            $('#switchBloqueoConsultasEvaluaciones').trigger("change");
+            $('#switchMaxConsultasEvaluaciones').prop('checked', false);
+            $('#switchMaxConsultasEvaluaciones').trigger("change");
+            $("#PlanEvaluacion_Id").val("0");
+            $("#PlanEvaluacion_BloquearConsultas").val(false);
+            $("#PlanEvaluacion_NumeroConsultas").val("");
+            $("#PlanEvaluacion_ValorConsulta").val("");
+            $("#PlanEvaluacion_ValorConsultaAdicional").val("");
+            $("#PlanEvaluacion_MaximoNumeroConsultas").val(false);
+        }
+
+        function limpiarPlanBuroCredito() {
+            $("#PlanBuroCredito_Id").val("0");
+            $("#PlanBuroCredito_NumeroMaximoConsultas").val("");
+            $("#PlanBuroCredito_NumeroMaximoConsultasCompartidas").val("");
+            $("#PlanBuroCredito_ValorPlanBuroCredito").val("");
+            $("#PlanBuroCredito_ValorConsulta").val("0");
+            $("#PlanBuroCredito_PersistenciaCache").val("0");
+            $("#PlanBuroCredito_Fuente").val("").trigger("change");
+            $("#PlanBuroCredito_Fuente").data('combobox', 'refresh');
+            $('#switchBloqueoConsultasBuro').prop('checked', false);
+            $('#switchBloqueoConsultasBuro').trigger("change");
+            $('#switchConsultasCompartidas').prop('checked', false);
+            $('#switchConsultasCompartidas').trigger("change");
+            $('#switchModeloCooperativas').prop('checked', false);
+            $('#switchModeloCooperativas').trigger("change");
+            $("#PlanBuroCredito_BloquearConsultas").val(false);
+        }
+
+        function formatRow(d) {
+            if (d && Object.keys(d).length >= 24) {
+                let esUnificado = d.tipoPlan === @((short)Dominio.Tipos.PlanesIdentificaciones.Unificado);
+
+                return `<table class="w-100 table-details pl-5" cellpadding="5" cellspacing="0" border="0">` +
+                    `<tr>` +
+                    `<td width="50%" class="text-left font-weight-bold"><b> Consultas Unificadas (Cédulas y RUCs)</b></td>` +
+                    `<td width="50%" class="text-right">${(esUnificado ? 'SI' : 'NO')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Plan Anual RUC</b></td>` +
+                    `<td class="text-right">${(!esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPlanAnualRuc) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Plan Anual Cédula</b></td>` +
+                    `<td class="text-right">${(!esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPlanAnualCedula) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Plan Mensual RUC</b></td>` +
+                    `<td class="text-right">${(!esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPlanMensualRuc) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Plan Mensual Cédula</b></td>` +
+                    `<td class="text-right">${(!esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPlanMensualCedula) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Consulta RUC</b></td>` +
+                    `<td class="text-right">${(!esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPorConsultaRucs) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Consulta Cédula</b></td>` +
+                    `<td class="text-right">${(!esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPorConsultaCedulas) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Consulta Adicional RUC</b></td>` +
+                    `<td class="text-right">${(!esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorConsultaAdicionalRucs) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Consulta Adicional Cédula</b></td>` +
+                    `<td class="text-right">${(!esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorConsultaAdicionalCedulas) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Plan Anual (Plan Unificado)</b></td>` +
+                    `<td class="text-right">${(esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPlanAnual) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Plan Mensual (Plan Unificado)</b></td>` +
+                    `<td class="text-right">${(esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPlanMensual) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Consulta (Plan Unificado)</b></td>` +
+                    `<td class="text-right">${(esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorPorConsulta) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Valor Consulta Adicional (Plan Unificado)</b></td>` +
+                    `<td class="text-right">${(esUnificado ? $.fn.dataTable.render.number(',', '.', 2, '$ ').display(d.valorConsultaAdicional) : 'N/A')}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="text-left font-weight-bold"><b> Bloquear Consulta</b></td>` +
+                    `<td class="text-right">${(d.bloquearConsultas ? "SI" : "NO")}</b></td>` +
+                    `</tr>` +
+                    `</table>`;
+            } else {
+                return `<table class="w-100 table-details pl-5" cellpadding="5" cellspacing="0" border="0">` +
+                    `<tr>` +
+                    `<td width="20%" class="font-weight-bold">Registrado por</td>` +
+                    `<td width="80%">${d.nombreUsuarioRegistro}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="font-weight-bold">Fecha Registro</td>` +
+                    `<td>${(d.fechaCreacion ? formatDateString(new Date(d.fechaCreacion), true, true, false) : "N/A")}</td>` +
+                    `</tr>` +
+                    `<tr>` +
+                    `<td class="font-weight-bold">Fecha Ult. Modificación</td>` +
+                    `<td>${(d.fechaModificacion ? formatDateString(new Date(d.fechaModificacion), true, true, false) : "N/A")}</td>` +
+                    `</tr>` +
+                    `</table>`;
+            }
+        }
+    </script>
+}

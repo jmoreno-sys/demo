@@ -1,0 +1,35 @@
+﻿<div class="row">
+    <div class="col" id="divReporteHistorial">
+        <div class="card mb-1">
+            <div class="card-header" id="headingEvaluacionRiesgo">
+                <h5 class="mb-0">
+                    <button id="buttonCalificacion" class="btn btn-link btn-block text-left" type="button" data-toggle="collapse" data-target="#collapseCalificacion" aria-expanded="false" aria-controls="collapseCalificacion">
+                        <i class="fas fa-list-check"></i> Evaluación Riesgo
+                    </button>
+                </h5>
+            </div>
+            <div id="collapseCalificacion" class="collapse" aria-labelledby="headingEvaluacionRiesgo" data-parent="#accordion">
+                <div class="card-body">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-xl-4 col-lg-7 col-md-12 col-sm-12 col-12 d-inline-flex pr-0">
+                                    <img src="~/images/iconos/listCheck.svg" alt="" width="40" height="40">
+                                    <span class="pl-2 my-auto">
+                                        Evaluación Riesgo
+                                    </span>
+                                </div>
+                                <div class="col-xl-8 col-lg-5 col-md-12 col-sm-12 col-12 align-right py-lg-2 pt-4  mx-auto d-flex justify-content-lg-end justify-content-center">
+                                    <button type="button" id="btnImprimirSolicitudCredito" class="btn btn-primary-custom btnImprimirSolicitudCredito" disabled><i class="fa-solid fa-print my-auto mr-1"></i>Imprimir solicitud de crédito</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div id="divFuenteCalificacion"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

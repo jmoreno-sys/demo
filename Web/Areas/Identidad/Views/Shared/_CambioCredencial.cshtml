@@ -1,0 +1,100 @@
+﻿<div class="modal fade" id="modalCredenciales" tabindex="-1" role="dialog" aria-labelledby="modalCredencialesLabel" aria-hidden="true">
+    <form id="formCambioClave" method="post">
+        <div class="modal-dialog  modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <img src="~/images/modales/cambio-clave.svg" alt="" width="23" height="23">
+                    <h5 class="modal-title ml-1" id="modalAnexosLabel"> Cambio de Contraseña</h5> <span class="pl-2"><span class="badge badge-info"></span></span>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-12">
+                            <label class="col-form-label col-form-label-sm required" for="iptContrasenaAnterior">Contraseña Actual</label>
+                            <div class="input-group">
+                                <input type="password" id="iptContrasenaAnterior" class="form-control form-control-lg iptContrasena" pattern=".{5,20}" required title="5 a 20 caracteres" required />
+                                <div class="input-group-append">
+                                    <button type="button" id="btnMostrarContrasenaAnterior" class="btn btn-sm btnMostrarContrasena " tabindex="-1"><span class="far fa-eye-slash iconContrasena"></span></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="col-form-label col-form-label-sm required" for="iptContrasena">Contraseña Nueva</label>
+                            <div class="input-group">
+                                <input type="password" id="iptContrasena" class="form-control form-control-lg iptContrasena" pattern=".{5,20}" title="5 a 20 caracteres" required />
+                                <div class="input-group-append">
+                                    <button type="button" id="btnMostrarContrasena" class="btn btn-sm btnMostrarContrasena " tabindex="-1"><span class="far fa-eye-slash iconContrasena "></span></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <label class="col-form-label col-form-label-sm required" for="iptContrasenaConfirma">Confirmar Contraseña</label>
+                            <div class="input-group">
+                                <input type="password" id="iptContrasenaConfirma" class="form-control form-control-lg iptContrasena" pattern=".{5,20}" title="5 a 20 caracteres" required />
+                                <div class="input-group-append">
+                                    <button type="button" id="btnMostrarContrasenaNueva" class="btn btn-sm btnMostrarContrasena " tabindex="-1"><span class="far fa-eye-slash iconContrasena"></span></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal">
+                        <i class="fa-solid fa-x mr-2"></i>Cerrar
+                    </button>
+                    <button id="btnCambioClave" type="submit" class="btn btn-primary-custom">
+                        <i class="fa-solid fa-floppy-disk mr-2"></i>Guardar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@using (Html.BeginScripts())
+{
+    <script>
+        $(document).ready(function () {
+            $("#formCambioClave").on("submit", function (e) {
+                e.preventDefault();
+                if ($("#iptContrasena").val().trim() != $("#iptContrasenaConfirma").val().trim()) {
+                    Swal.fire("¡Advertencia!", "Las contraseña nueva no coincide", "warning");
+                    return;
+                }
+                $.post({
+                    url: "@Url.Action("CambiarClave", "Cuenta", new { Area = "Identidad" })",
+                    data: { ClaveAnterior: $("#iptContrasenaAnterior").val(), Clave: $("#iptContrasena").val(), ConfirmaClave: $("#iptContrasenaConfirma").val() },
+                    beforeSend: function () {
+                        initLoadingSwal();
+                    },
+                    success: function (result) {
+                        Swal.fire('¡Cambio de contraseña Exitoso!', 'Se ha cambiado con éxito la contraseña ingresada', "success").then(() => {
+                            initLoadingSwal();
+                            window.location.href = "@Url.Action("Salir", "Cuenta", new { Area = "Identidad" })";
+                        });
+
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", error.responseJSON.detail, "error");
+                        console.log(error);
+                    }
+                });
+            });
+
+            $(".btnMostrarContrasena").click(function () {
+                if ($(".iptContrasena").attr('type') === "password") {
+                    $(".iptContrasena").attr('type', 'text');
+                    $('.iconContrasena').removeClass('far fa-eye-slash').addClass('far fa-eye');
+                } else {
+                    $(".iptContrasena").attr('type', 'password');
+                    $('.iconContrasena').removeClass('far fa-eye').addClass('far fa-eye-slash');
+                }
+            });
+
+            $('#modalCredenciales').on('hidden.bs.modal', function (e) {
+                e.preventDefault();
+                $('#formCambioClave').trigger("reset");
+            });
+        });
+    </script>
+}

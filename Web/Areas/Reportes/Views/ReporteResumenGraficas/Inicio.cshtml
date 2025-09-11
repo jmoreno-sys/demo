@@ -1,0 +1,442 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Persistencia.Repositorios.Balance
+@inject UserManager<Dominio.Entidades.Identidad.Usuario> userManager
+@inject SignInManager<Dominio.Entidades.Identidad.Usuario> signInManager
+@inject IEmpresas Empresas
+@{
+    ViewData["Title"] = "Reporte Evaluaciones Gráficas";
+}
+
+<section id="content">
+    <div class="container-fluid px-xl-5 px-lg-5 px-md-1 px-sm-0">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb purple lighten-4">
+                        <li class="breadcrumb-item"><a asp-area="Consultas" asp-controller="Principal" asp-action="Inicio">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Reporte Evaluaciones Gráficas</li>
+                    </ol>
+                </nav>
+            </div>
+        </div>
+    </div>
+    <div class="row pt-1">
+        <div class="col-12">
+            <div class="alert alert-info p-2 mb-3 text-center" role="alert">
+                Reporte obtenido a partir del: <b>@DateTime.Now.Date.AddYears(-1).ToString("dd/MM/yyyy")</b> hasta el: <b>@DateTime.Now.Date.ToString("dd/MM/yyyy")</b>
+            </div>
+        </div>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body p-1">
+                    <div class="row">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <span class="pl-2 my-auto">
+                                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                                        Cantidad de Evaluaciones
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div id="container"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <span class="pl-2 my-auto">
+                                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                                        Resumen de Evaluaciones Rechazadas
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <table id="tablaResumenRechazo" class="table table-sm table-bordered table-hover table-striped w-100">
+                                        <thead class="text-center">
+                                            <tr>
+                                                <th>
+                                                    Tipo Evaluación
+                                                </th>
+                                                <th>
+                                                    Cantidad
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-center">
+                                        </tbody>
+                                        <tfoot class="font-weight-bold">
+                                            <tr>
+                                                <td class="border-top">Total:</td>
+                                                <td class="border-top text-center"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                    <hr />
+                                    <table id="tablaPoliticas" class="table table-sm table-bordered table-hover table-striped w-100">
+                                        <thead class="text-center">
+                                            <tr>
+                                                <th>
+                                                    Políticas Rechazadas - Fuentes Externas
+                                                </th>
+                                                <th>
+                                                    Cantidad
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-center">
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <span class="pl-2 my-auto">
+                                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                                        Resumen de Evaluaciones Rechazadas Buró de Crédito
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <div id="containerBuro"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-12 col-md-12 col-lg-6">
+                            <div class="card h-100">
+                                <div class="card-header">
+                                    <span class="pl-2 my-auto">
+                                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                                        Rechazos por Fuentes Externas
+                                    </span>
+                                </div>
+                                <div class="card-body">
+                                    <table id="tablaResumenRechazoScore" class="table table-sm table-bordered table-hover table-striped w-100">
+                                        <thead class="text-center">
+                                            <tr>
+                                                <th>
+                                                    Aprobado en Buró de Crédito - Rechazado en Fuentes Externas
+                                                </th>
+                                                <th>
+                                                    Cantidad
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody class="text-center">
+                                        </tbody>
+                                         <tfoot class="font-weight-bold">
+                                            <tr>
+                                                <td class="border-top">Total:</td>
+                                                <td class="border-top text-center"></td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!--Componentes-->
+<partial name="Components/_Highcharts" />
+<partial name="Components/_Datatables" />
+
+<partial name="Components/_Loader" />
+@section Scripts {
+    <script>
+        let graficaResumen;
+        let graficaResumenBuro;
+        let tablaPoliticas;
+        let tablaResumenRechazo;
+        let tablaResumenRechazoScore;
+        $(document).ready(function () {
+            function obtenerResumenEvalaucines() {
+                $.ajax({
+                    url: "@Url.Action("ReporteResumenGraficas", "ReporteResumenGraficas", new { Area = "Reportes" })",
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                    success: function (data) {
+                        $.each(data, function (index, item) {
+                            graficaResumen.series[0].addPoint({
+                                name: item.name,
+                                y: item.y
+                            });
+                        });
+                    }
+                });
+            }
+
+            function obtenerResumenEvalaucinesBuro() {
+                $.ajax({
+                    url: "@Url.Action("ReporteResumenGraficasBuro", "ReporteResumenGraficas", new { Area = "Reportes" })",
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                    success: function (data) {
+                        $.each(data, function (index, item) {
+                            graficaResumenBuro.series[0].addPoint({
+                                name: item.name,
+                                y: item.y
+                            });
+                        });
+                    }
+                });
+            }
+
+            graficaResumen = new Highcharts.chart('container', {
+                chart: {
+                    type: 'pie',
+                    options3d: {
+                        enabled: true,
+                        alpha: 50,
+                        beta: 0
+                    },
+                    events: {
+                        load: obtenerResumenEvalaucines
+                    }                    
+                },
+                title: null,
+                exporting: {
+                    enabled: false
+                },
+                tooltip: {
+                    valueSuffix: ''
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        depth: 30,
+                        innerSize: '20%',
+                        colors: [
+                            '#2986cc',
+                            '#6aa84f',
+                        ],
+                        showInLegend: true,
+                        dataLabels: {
+                            enabled: false
+                        }
+                    }
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [
+                    {
+                        name: 'Cantidad',
+                        colorByPoint: true,
+                        data: [],
+                        dataLabels: {
+                            enabled: true,
+                            format: '{point.y} - {point.name}',
+                            distance: 15,
+                            style: {
+                                fontSize: '1.5em',
+                            }
+                        }
+                    }
+                ]
+            });
+
+            graficaResumenBuro = new Highcharts.chart('containerBuro', {
+                chart: {
+                    type: 'pie',
+                    options3d: {
+                        enabled: true,
+                        alpha: 45,
+                        beta: 0
+                    },
+                    events: {
+                        load: obtenerResumenEvalaucinesBuro
+                    }
+                },
+                title: null,
+                exporting: {
+                    enabled: false
+                },
+                tooltip: {
+                    valueSuffix: ''
+                },
+                plotOptions: {
+                    pie: {
+                        allowPointSelect: true,
+                        cursor: 'pointer',
+                        depth: 30,
+                        colors: [
+                            '#2986cc',
+                            '#6aa84f',
+                            '#ffc000',
+                            '#6f54b6',
+                            '#f73737'
+                        ],
+                        showInLegend: true,
+                        dataLabels: {
+                            enabled: false
+                        }
+                    }
+                },
+                credits: {
+                    enabled: false
+                },
+                series: [
+                    {
+                        name: 'Cantidad',
+                        colorByPoint: true,
+                        innerSize: '20%',
+                        data: [],
+                        dataLabels: {
+                            enabled: true,
+                            format: '{point.y} - {point.name}',
+                            distance: 15,
+                            style: {
+                                fontSize: '1.5em',
+                            }
+                        }
+                    }
+                ]
+            });
+
+            let config = {
+                id: "tablaPoliticas",
+                dom: "tipr",
+                ajax: {
+                    url: "@Url.Action("ListadoPoliticasRechazo", "ReporteResumenGraficas", new { Area = "Reportes" })",
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    { width: '80%', data: 'politicas', className: 'text-left' },
+                    { width: '20%', data: 'cantidad' },
+                ],                      
+                columnFilter: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                initComplete: function (e) {
+                    $('#tablaPoliticas').wrap("<div class='scrolledTable'></div>");
+                    hideLoader();
+                },
+                drawCallback: function (e) {
+                    tippy('[data-tippy-content]');
+                },
+                pageLength: 10,
+                order: []
+            }
+
+            tablaPoliticas = configDatatable(config);
+
+            let configResumen = {
+                id: "tablaResumenRechazo",
+                dom: "tir",
+                ajax: {
+                    url: "@Url.Action("ListadoEvaluacionRechazo", "ReporteResumenGraficas", new { Area = "Reportes" })",
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    {
+                        width: '50%', data: 'tipoCalificacion', className: 'text-left',
+                        render: function (data, type, row) {
+                            return data === @((short)Dominio.Tipos.TiposCalificaciones.Evaluacion) ? 'Fuentes Externas' : 'Buró de Crédito';
+                        }
+                    },
+                    { width: '50%', data: 'cantidad' },
+                ],
+                footerCallback: function (row, data, start, end, display) {                 
+                    let api = this.api(); 
+                    total = api
+                        .column(1)
+                        .data()
+                        .reduce((a, b) => parseInt(a) + parseInt(b), 0);
+
+                    api.column(1).footer().innerHTML = total;
+                },
+                columnFilter: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                initComplete: function (e) {
+                    $('#tablaPoliticas').wrap("<div class='scrolledTable'></div>");
+                    hideLoader();
+                },
+                drawCallback: function (e) {
+                    tippy('[data-tippy-content]');
+                },
+                paging: false,
+                order: []
+            }
+
+            tablaResumenRechazo = configDatatable(configResumen);
+
+            let configResumenScore = {
+                id: "tablaResumenRechazoScore",
+                dom: "tipr",
+                ajax: {
+                    url: "@Url.Action("ListadoEvaluacionRechazoBuro", "ReporteResumenGraficas", new { Area = "Reportes" })",
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    { width: '50%', data: 'calificacion', className: 'text-left' },
+                    { width: '50%', data: 'cantidad' },
+                ],
+                columnFilter: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                initComplete: function (e) {
+                    $('#tablaResumenRechazoScore').wrap("<div class='scrolledTable'></div>");
+                    hideLoader();
+                },
+                drawCallback: function (e) {
+                    tippy('[data-tippy-content]');
+                },
+                pageLength: 10,
+                order: [],
+                footerCallback: function (row, data, start, end, display) {                 
+                    let api = this.api(); 
+                    total = api
+                        .column(1)
+                        .data()
+                        .reduce((a, b) => parseInt(a) + parseInt(b), 0);
+
+                    api.column(1).footer().innerHTML = total;
+                },
+            }
+
+            tablaResumenRechazoScore = configDatatable(configResumenScore);
+        });
+    </script>
+}

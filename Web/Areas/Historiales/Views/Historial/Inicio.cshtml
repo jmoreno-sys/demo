@@ -1,0 +1,1387 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Persistencia.Repositorios.Balance
+@inject UserManager<Dominio.Entidades.Identidad.Usuario> userManager
+@inject SignInManager<Dominio.Entidades.Identidad.Usuario> signInManager
+@inject IEmpresas Empresas
+@{
+    ViewData["Title"] = "Reporte Historial";
+    var empresas = await Empresas.ReadAsync(m => new { m.Id, m.RazonSocial }, null, o => o.OrderBy(m => m.RazonSocial));
+    var lstEmpresas = empresas.Select(m => new SelectListItem(m.RazonSocial, ((short)m.Id).ToString())).ToList();
+    var fechaTope = DateTime.Now.AddYears(-1).Date.ToShortDateString();
+    var fechaDesde = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).Date.ToShortDateString();
+    var enlaceListado = string.Empty;
+    string tipoHistorial = ViewBag.TipoHistorial;
+    switch (tipoHistorial)
+    {
+        case Dominio.Tipos.Pantallas.HistorialGeneral:
+            enlaceListado = Url.Action("ListadoHistorialGeneral", "Historial");
+            break;
+        case Dominio.Tipos.Pantallas.HistorialEmpresa:
+            enlaceListado = Url.Action("ListadoHistorialEmpresa", "Historial");
+            break;
+        default:
+            enlaceListado = Url.Action("ListadoHistorial", "Historial");
+            break;
+    }
+    var detalleConsultasVendedor = User.IsInRole(Dominio.Tipos.Roles.VendedorEmpresa) ? true : false;
+}
+
+<section id="content">
+    <div class="container-fluid px-xl-5 px-lg-5 px-md-1 px-sm-0">
+        <div class="row">
+            <div class="col">
+                @if (!User.IsInRole(Dominio.Tipos.Roles.Reporteria))
+                {
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb purple lighten-4">
+                            <li class="breadcrumb-item"><a asp-area="Consultas" asp-controller="Principal" asp-action="Inicio">Inicio</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Reporte Historial</li>
+                        </ol>
+                    </nav>
+                }
+                <div class="card">
+                    <div class="card-body pb-0 pt-0">
+                        <div class="row">
+                            <div class="col-lg-8 col-md-12 col-sm-12 pl-0 mb-2 mt-2">
+                                <div class="row">
+                                    <div class="col-lg-3 col-md-12 col-sm-12 pb-lg-0 pb-md-2 pb-sm-2 pb-2">
+                                        <div class="input-group h-100">
+                                            <div class="input-group-prepend" data-tippy-content="Periodo de búsqueda">
+                                                <span class="input-group-text h-100"><i class="far fa-clock fa-1x"></i></span>
+                                            </div>
+                                            <select id="selectPeriodo" class="form-control form-control-sm selectpicker p-0 h-100">
+                                                <option value="1">MESES</option>
+                                                <option value="2">DÍAS</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-3 col-md-12 col-sm-12 pl-lg-0 pb-lg-0 pb-md-2 pb-sm-2 pb-2" id="selectMeses">
+                                        <div class="input-group h-100">
+                                            <div class="input-group-prepend input-meses" data-tippy-content="Mes">
+                                                <div class="input-group-text h-100"><i class="far fa-calendar fa-1x"></i></div>
+                                            </div>
+                                            <input id="inputFechaMeses" type="text" class="form-control form-control datepicker datepicker-month input-meses" data-provide="datepicker" data-date-format="dd/mm/yyyy" autocomplete="off" maxlength="10" />
+                                        </div>
+                                    </div>
+                                    <div class="col-lg-6 col-md-12 col-sm-12 pl-lg-0 pb-lg-0 pb-md-2 pb-sm-2 pb-2" id="selectDias">
+                                        <div class="row h-100">
+                                            <div class="col-lg-6 col-md-12 col-sm-12 pb-lg-0 pb-md-2 pb-sm-2 pb-2">
+                                                <div class="input-group h-100">
+                                                    <div class="input-group-prepend input-fechas" data-tippy-content="Fecha inicio" data-tippy-placement="top">
+                                                        <div class="input-group-text h-100"><i class="far fa-calendar fa-1x"></i></div>
+                                                    </div>
+                                                    <input id="inputFechaInicio" type="text" class="form-control form-control datepicker datepicker-day input-fechas" data-provide="datepicker" data-date-format="dd/mm/yyyy" autocomplete="off" maxlength="10" />
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-6 col-md-12 col-sm-12 pl-lg-0">
+                                                <div class="input-group h-100">
+                                                    <div class="input-group-prepend input-fechas" data-tippy-content="Fecha fin">
+                                                        <div class="input-group-text h-100"><i class="fas fa-calendar fa-1x"></i></div>
+                                                    </div>
+                                                    <input id="inputFechaFin" type="text" class="form-control form-control datepicker datepicker-day input-fechas" data-provide="datepicker" data-date-format="dd/mm/yyyy" autocomplete="off" maxlength="10" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    @if (User.IsInRole(Dominio.Tipos.Roles.Administrador))
+                                    {
+                                        <div class="col-lg-6 col-md-12 col-sm-12 pl-lg-0" id="colEmpresas">
+                                            <div class="input-group h-100">
+                                                <div class="input-group-prepend" data-tippy-content="Empresa">
+                                                    <div class="input-group-text h-100"><i class="far fa-building fa-1x"></i></div>
+                                                </div>
+                                                <select id="selectEmpresas" class="form-control form-control-sm selectpicker p-0 h-100" data-width="flex" data-size="10" data-live-search="true" multiple title="Seleccionar..." data-actions-box="true" asp-items="@lstEmpresas">
+                                                </select>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <div class="col-lg-4 col-md-12 col-sm-12 d-flex justify-content-end mb-2 mt-2">
+                                <button type="submit" class="btn btn-primary-custom mr-1 d-inline-flex" id="btnBuscarHistorial">
+                                    <i class="fa-solid fa-magnifying-glass mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Buscar</span>
+                                </button>
+                                <button type="submit" class="btn btnDescargarHistorial btn-success d-inline-flex">
+                                    <i class="fas fa-file-export mr-1 my-auto"></i><span class="d-none d-sm-none d-md-none d-lg-block">Descargar</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row pt-1">
+        <div class="col">
+            <div class="card">
+                <div class="card-body p-1">
+                    <table id="tablaHistorial" class="table table-sm table-bordered table-hover table-striped w-100">
+                        <thead class="text-center">
+                            <tr>
+                                <th class="no-export" data-orderable="false" data-priority="1"></th>
+                                <th class="no-export" data-orderable="false" data-priority="1"></th>
+                                <th class="no-export" data-orderable="false" data-priority="1"></th>
+                                <th class="text-center no-export">Nombre Empresa Identificación</th>
+                                <th>Identificación Empresa</th>
+                                <th>Nombre Empresa</th>
+                                <th>Nombre Usuario</th>
+                                <th>Fecha Hora </th>
+                                <th>Tipo Identificación</th>
+                                <th class="no-export">Identificación consultada</th>
+                                <th>Identificación consultada</th>
+                                <th>Razón social / Nombre de persona</th>
+                                <th>Canal Consulta</th>
+                                <th class="no-export">Consulta Buró</th>
+                                <th>Consulta Buró</th>
+                                <th class="no-export"></th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--Modal Detalle-->
+<div id="modalDetalleHistorial" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="modalDetalleHistorialLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-xl" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img src="~/images/modales/historial.svg" alt="" width="23" height="23">
+                <h5 class="modal-title ml-1">Detalle de consulta</h5>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col">
+                        <div class="card">
+                            <div class="row p-2">
+                                <div class="col-lg-3 col-md-6 col-sm-6">
+                                    <label class="col-form-label col-form-label-sm"><b>Identificación Consultada:</b></label>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-6">
+                                    <label id="labelIdentificacion" class="col-form-label col-form-label-sm"></label>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-6">
+                                    <label class="col-form-label col-form-label-sm"><b>Razon social / Nombre de persona:</b></label>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-6">
+                                    <label id="labelRazonSocial" class="col-form-label col-form-label-sm"></label>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-6">
+                                    <label class="col-form-label col-form-label-sm"><b>Período:</b></label>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-6">
+                                    <label id="labelPeriodo" class="col-form-label col-form-label-sm"></label>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-6">
+                                    <label class="col-form-label col-form-label-sm"><b>Fecha y hora:</b></label>
+                                </div>
+                                <div class="col-lg-3 col-md-6 col-sm-6">
+                                    <label id="labelFechaHora" class="col-form-label col-form-label-sm"></label>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="accordion" id="accordion">
+                    @if (!detalleConsultasVendedor)
+                    {
+                        <partial name="_DetalleHistorial" />
+                    }                  
+                    else
+                    {
+                        <partial name="_DetalleHistorialVendedor" />
+                    }                
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Salir</button>               
+                <button type="button" id="btnImprimir" class="btn btn-primary-custom"><i class="fa-solid fa-print mr-2"></i>Imprimir</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Componentes-->
+<partial name="Components/_Datepicker" />
+<partial name="Components/_Datatables" />
+<partial name="Components/_Loader" />
+<partial name="Components/_Select" />
+<partial name="Components/_Highcharts" />
+
+@section Scripts{
+    <script>
+        let filtroApagado = true;
+        let swCarga = false;
+        let tablaHistorial;
+        let fechaDesdeReporte;
+        let fechaHastaReporte;
+        let fechaMesesReporte;
+        let cacheSri = false;
+        let cacheCivil = false;
+        let cacheIess = false;
+        let cacheSocietario = false;
+        let cacheSenescyt = false;
+        let cacheAnt = false;
+        let cachePensionAlimenticia = false;
+        let cacheSuperBancosCedula = false;
+        let cacheSuperBancosNatural = false;
+        let cacheSuperBancosEmpresa = false;
+        let cacheAntecedentes = false;
+        let cacheFuerzasArmadas = false;
+        let cacheDeNoBaja = false;
+        let cachePredios = false;
+        let cacheFiscalia = false;
+        let cacheUafe = false;
+        let cacheLegal = false;
+        let cacheSercop = false;
+        let cacheBuroCredito = false;
+        let cacheCalificacion = false;
+        let dataDetalleHistorialTemp;
+        $(document).ready(function () {
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Inicialización
+            //$('.input-fechas').hide();
+            $('#selectDias').hide();
+            $('.datepicker-day').datepicker({
+                format: 'dd/mm/yyyy',
+                language: 'es',
+                todayBtn: "linked",
+                todayHighlight: true,
+                autoclose: true,
+                startDate: "@fechaTope",
+                endDate: "today"
+            }, { dateFormat: "dd/mm/yyyy" });
+            $('#inputFechaInicio').datepicker('setDate', '@fechaDesde');
+            $('#inputFechaFin').datepicker('setDate', 'now');
+
+            $('.datepicker-month').datepicker({
+                language: 'es',
+                format: "mm/yyyy",
+                viewMode: "months",
+                minViewMode: "months",
+                todayBtn: "linked",
+                todayHighlight: true,
+                autoclose: true,
+                endDate: "today"
+            }).datepicker("setDate", 'now');
+            $('#inputFechaMeses').datepicker('setDate', 'now');
+
+            let config = {
+                id: "tablaHistorial",
+                dom: "ftipr",
+                ajax: {
+                    url: '@enlaceListado',
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: function (d) {
+                        let filtros = new Object();
+                        let fechaDesdeHistorial;
+                        let fechaHastaHistorial;
+                        let empresas;
+                        let meses = $("#selectPeriodo").val() === "1";
+                        if (!meses) {
+                            fechaDesdeHistorial = $('#inputFechaInicio').datepicker("getDate");
+                            fechaHastaHistorial = $('#inputFechaFin').datepicker("getDate");
+                            fechaDesdeReporte = fechaDesdeHistorial;
+                            fechaHastaReporte = fechaHastaHistorial;
+                        } else {
+                            fechaDesdeHistorial = $('#inputFechaMeses').datepicker("getDate");
+                            fechaHastaHistorial = $('#inputFechaMeses').datepicker("getDate");
+                            fechaMesesReporte = fechaHastaHistorial;
+                        }
+                        filtros.fechaDesde = fechaDesdeHistorial;
+                        filtros.fechaHasta = fechaHastaHistorial;
+                        if ('@tipoHistorial' === '@Dominio.Tipos.Pantallas.HistorialGeneral') {
+                            empresas = $("#selectEmpresas").val();
+                            filtros.empresas = JSON.stringify(empresas);
+                        }
+                        filtros.meses = meses;
+                        filtros.filtroApagado = filtroApagado;
+                        return JSON.stringify(filtros);
+                    },
+                    dataSrc: function (e) {
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    { data: 'id', visible: false },
+                    { data: 'idUsuario', visible: false },
+                    { data: 'idEmpresa', visible: false },
+                    {
+                        width: '20%', data: 'nombreEmpresa', className: "text-left",
+                        render: function (data, type, row, meta) {
+                            return `${data} <p class="mt-0 pt-0 pb-0 mb-0 text-muted"><i>${row.identificacionEmpresa}</i></p>`;
+                        }
+                    },
+                    { visible: false, data: 'identificacionEmpresa' },
+                    { visible: false, data: 'nombreEmpresa' },
+                    { width: '20%', data: 'nombreUsuario' },
+                    {
+                        width: '5%', data: 'fecha',
+                        render: function (data, type, row) {
+                            return formatDateString(new Date(data), true, true, true);
+                        }
+                    },
+                    {
+                        width: '5%', data: 'tipoIdentificacion',
+                        render: function (data, type, row) {
+                            switch (data) {
+                                case "@Dominio.Constantes.General.Cedula":
+                                    return '<span class="badge badge-primary">Cédula</span>';
+                                    break;
+                                case "@Dominio.Constantes.General.RucJuridico":
+                                    return '<span class="badge badge-success">Ruc Jurídico</span>';
+                                    break;
+                                case "@Dominio.Constantes.General.RucNatural":
+                                    return '<span class="badge badge-info">Ruc Natural</span>';
+                                    break;
+                                case "@Dominio.Constantes.General.SectorPublico":
+                                    return '<span class="badge badge-secondary">Ruc Jurídico / Sector Público</span>';
+                                    break;
+                                case "@Dominio.Constantes.General.PrdInternacionalFlexiplast":
+                                    return '<span class="badge badge-info">Proveedor Internacional</span>';
+                                    break;
+                                default:
+                                    return "N/A";
+                                    break;
+                            }
+                        }
+                    },
+                    {
+                        width: '10%', data: 'identificacion',
+                        render: function (data, type, row) {
+                            return row.consultaEvaluacion ? `${data}<br\><span class="badge badge-${(row.aprobadoEvaluacion ? "success" : "danger")}"><i class="fa-solid fa-circle-${(row.aprobadoEvaluacion ? "check" : "xmark")} pr-1"></i>Evaluado</span>` : data;
+                        }
+                    },
+                    {
+                        visible: false, data: 'identificacion',
+                        render: function (data, type, row) {
+                            return row.consultaEvaluacion ? `${data} - Evaluado` : data;
+                        }
+                    },
+                    {
+                        width: '27%', data: 'razonSocial',
+                        render: function (data, type, row) {
+                            return data ? data : row.nombrePersona ? row.nombrePersona : `<span>N/A</span>`;
+                        }
+                    },
+                    {
+                        width: '5%', data: 'tipoConsulta'
+                    },
+                    {
+                        width: '5%', data: 'consultaBuro',
+                        render: function (data, type, row) {
+                            return data ? (row.fuenteBuro !== null ? `SI<br\><span class="badge badge-info"><i class="fa-solid fa-money-check pr-1"></i>${row.fuenteBuro}</span>` : 'SI') : `<span>N/A</span>`;
+                        }
+                    },
+                    {
+                        visible: false, data: 'consultaBuro',
+                        render: function (data, type, row) {
+                            return data ? (row.fuenteBuro !== null ? `SI (${row.fuenteBuro})` : 'SI') : `N/A`;
+                        }
+                    },
+                    {
+                        width: '3%', filter: 'none', type: 'none', data: null, orderable: false, className: "text-center",
+                        render: function (data, type, row) {
+                            return `<a href='#!' class='badge btn-visualizar'><i class="fa-solid fa-magnifying-glass mr-1"></i> Ver Detalle </a>`;
+                        }
+                    }
+                ],
+                buttons: [
+                    {
+                        extend: "excelHtml5", sheetName: "Consultas", autoFilter: true,
+                        filename: function () {
+                            if ($("#selectPeriodo").val() === "1") {
+                                return `ReporteHistorial_${fechaMesesReporte.getFullYear()}-${('0' + (fechaMesesReporte.getMonth() + 1)).slice(-2)}`;
+                            } else {
+                                return `ReporteHistorial_${fechaDesdeReporte.getFullYear()}-${('0' + (fechaDesdeReporte.getMonth() + 1)).slice(-2)}-${('0' + (fechaDesdeReporte.getDate())).slice(-2)}_${fechaHastaReporte.getFullYear()}-${('0' + (fechaHastaReporte.getMonth() + 1)).slice(-2)}-${('0' + (fechaHastaReporte.getDate())).slice(-2)}`
+                            }
+                        },
+                        exportOptions: {
+                            columns: ':not(.no-export)'
+                        },
+                        action: function (e, dt, button, config) {
+                            initLoadingSwal();
+                            let currentTable = this;
+                            setTimeout(function () {
+                                $.fn.dataTable.ext.buttons.excelHtml5.action.call(currentTable, e, dt, button, config);
+                            }, 1000);
+                        }
+                    }
+                ],
+                columnFilter: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                initComplete: function (e) {
+                    $('#tablaHistorial').wrap("<div class='scrolledTable'></div>");
+                    hideLoader();
+                },
+                pageLength: 20,
+                order: [[0, "des"]]
+            };
+            tablaHistorial = configDatatable(config);
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Filtros
+            $("#selectPeriodo").change(function () {
+                let valor = $(this).val();
+                if (valor !== "1") {
+                    //$('.input-fechas').show();
+                    //$('.input-meses').hide();
+                    $('#selectDias').css('display', 'block');
+                    $('#selectMeses').css('display', 'none');
+                    $('#inputFechaInicio').datepicker('setDate', '@fechaDesde');
+                    $('#inputFechaFin').datepicker('setDate', 'now');
+                    $("#colEmpresas").removeClass("col-lg-6");
+                    $("#colEmpresas").addClass("col-lg-3");
+                } else {
+                    //$('.input-fechas').hide();
+                    //$('.input-meses').show();
+                    $('#selectDias').css('display', 'none');
+                    $('#selectMeses').css('display', 'block');
+                    $('#inputFechaMeses').datepicker('setDate', 'now');
+                    $("#colEmpresas").removeClass("col-lg-3");
+                    $("#colEmpresas").addClass("col-lg-6");
+                }
+                initLoadingSwal();
+                tablaHistorial.ajax.reload();
+            });
+
+            $("#btnBuscarHistorial").click(function () {
+                filtroApagado = false;
+                let fechaInicio = $("#inputFechaInicio").val();
+                let fechaFin = $("#inputFechaFin").val();
+                if ((!fechaInicio || fechaInicio.trim() === "") || (!fechaFin || fechaFin.trim() === "")) {
+                    Swal.fire("Error", "El campo Fecha Desde y Fecha Hasta son obligatorios", "error");
+                    return false;
+                }
+                let fechaInicioDate = new Date($("#inputFechaInicio").datepicker("getDate"));
+                let fechaFinDate = new Date($("#inputFechaFin").datepicker("getDate"));
+                if (fechaFinDate < fechaInicioDate) {
+                    Swal.fire("¡Error!", "La Fecha de Fin no puede ser superior a la Fecha de Inicio", "error");
+                    $("#inputFechaInicio").datepicker("setDate", '@fechaDesde');
+                    $("#inputFechaFin").datepicker("setDate", 'now');
+                    return false;
+                }
+                initLoadingSwal();
+                tablaHistorial.ajax.reload();
+            });
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Imprimir & Descarga
+            $("#btnImprimir").on("click", function () {
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("ObtenerReporteConsultas", "Principal", new { Area = "Consultas"})",
+                    data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    datatype: "json",
+                    beforeSend: function () {
+                        initLoadingSwal("Generando Reporte PDF...");
+                    },
+                    success: function (data) {
+                        if (data) {
+                            let a = document.createElement('a');
+                            let url = window.URL.createObjectURL(data);
+                            a.href = url;
+                            a.download = `ReporteAnálisisInformación360_${$("#labelIdentificacion").html()}`;
+                            document.body.append(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
+                            swal.close();
+                        } else
+                            Swal.fire("¡Error!", "No se pudo generar el pdf", "error");
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", error && error.responseJSON ? error.responseJSON.detail : (error && error.responseText ? `No se pudo generar el reporte PDF. ${error.responseText}` : "No se pudo generar el reporte PDF. "), "error");
+                        console.log(error);
+                    }
+                });
+            });
+
+            $(".btnDescargarHistorial").on("click", function () {
+                tablaHistorial.button(0).trigger();
+            });
+
+            //Imprimir solicitud credito
+            $("#btnImprimirSolicitudCredito").on("click", function () {
+                let url = "";
+                if (dataDetalleHistorialTemp && dataDetalleHistorialTemp != null && dataDetalleHistorialTemp.idEmpresa != 0 && dataDetalleHistorialTemp.idEmpresa === @Dominio.Constantes.Clientes.IdCliente0991235949001)
+                    url = "@Url.Action("ObtenerReporteConsultasMundoFactor", "Principal", new { Area = "Consultas" })"
+                else
+                    url = "@Url.Action("ObtenerSolicitudCredito", "Principal", new { Area = "Consultas" })"
+
+                $.ajax({
+                    type: "POST",
+                    url: url,
+                    data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    datatype: "json",
+                    beforeSend: function () {
+                        initLoadingSwal("Generando Reporte PDF...");
+                    },
+                    success: function (data) {
+                        if (data) {
+                            let a = document.createElement('a');
+                            let url = window.URL.createObjectURL(data);
+                            a.href = url;
+                            a.download = `SolicitudCredito_${$("#labelIdentificacion").html()}`;
+                            document.body.append(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
+                            swal.close();
+                        } else
+                            Swal.fire("¡Error!", "No se pudo generar el pdf", "error");
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", error && error.responseJSON ? error.responseJSON.detail : (error && error.responseText ? `No se pudo generar el reporte PDF. ${error.responseText}` : "No se pudo generar el reporte PDF. "), "error");
+                        console.log(error);
+                    }
+                });
+            });
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Fuentes Detalle Historial
+            $('#tablaHistorial tbody').on('click', '.btn-visualizar', function () {
+                let data = tablaHistorial.rows($(this).closest("tr")).data()[0];
+                dataDetalleHistorialTemp = data;
+                // if (!data.consultaBuro) {
+                //     $("#divBuroCreditoHistorial").hide();
+                // } else
+                //     $("#divBuroCreditoHistorial").show();
+
+                $('#labelIdentificacion').html(data.identificacion);
+                if (data.razonSocial != null)
+                    $('#labelRazonSocial').html(data.razonSocial);
+                else if (data.nombrePersona != null)
+                    $('#labelRazonSocial').html(data.nombrePersona);
+                else
+                    $('#labelRazonSocial').html(`<span>N/A</span>`);
+
+                $('#labelFechaHora').html(data.fechaHora);
+
+                if (data.periodo === null || data.periodo == 0)
+                    $('#labelPeriodo').html("N/A");
+                else
+                    $('#labelPeriodo').html(data.periodo.toString());
+
+                $('#modalDetalleHistorial').modal("show");
+            });
+
+            $("#buttonSri").click(function () {
+                if ($('#collapseSri.collapse.show').length !== 0) return;
+                $("#divBarraSRI").show();
+                if (!cacheSri) {
+                    $('#divFuenteSri').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosSri", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteSri").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraSRI").css("display", "none");
+                            $('#divFuenteSri').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheSri = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial SRI.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonPersona").click(function () {
+                if ($('#collapsePersona.collapse.show').length !== 0) return;
+                $("#divBarraPersona").show();
+                if (!cacheCivil) {
+                    $('#divFuentePersona').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosPersona", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuentePersona").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraPersona").css("display", "none");
+                            $('#divFuentePersona').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheCivil = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Civil.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonIess").click(function () {
+                if ($('#collapseIess.collapse.show').length !== 0) return;
+                $("#divBarraIess").show();
+                if (!cacheIess) {
+                    $('#divFuenteIess').html("");
+                    $('#divHistorialIess2').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosIess", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteIess").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraIess").css("display", "none");
+                            $('#divFuenteIess').html(data);
+                            tippy('[data-tippy-content]');
+                           
+                            
+                            $.post({
+                                url: "@Url.Action("ObtenerDatosHistorialIess", "Historial", new { Area = "Historiales" })",
+                                data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                                success: function (data2) {
+                                    const tempDiv = document.createElement("div");
+                                    tempDiv.innerHTML = data2;
+                                    // Buscar el div que tiene el data-usuario-iess
+                                    const divContenido = tempDiv.querySelector("#contenidoIess");
+                                    const esIess = divContenido && (
+                                        divContenido.dataset.usuarioIess === "True" ||
+                                        divContenido.dataset.usuarioIess === true
+                                    );
+                                    cacheIess = true;
+                                    if(esIess){
+                                        $('#divHistorialIess2').html(data2);
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                    Swal.fire("¡Error!", "No se pudo recuperar el historial del IESS.", "error");
+                                    console.error("Error en la consulta de historial IESS:", {
+                                        status: status,
+                                        error: error,
+                                        responseText: xhr.responseText
+                                    });
+                                }
+                            });
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial IESS.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonBalances").click(function () {
+                if ($('#collapseBalances.collapse.show').length !== 0) return;
+                $("#divBarraBalances").show();
+                if (!cacheSocietario) {
+                    $('#divFuenteBalances').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosBalances", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteBalances").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraBalances").css("display", "none");
+                            $('#divFuenteBalances').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheSocietario = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Societario.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonSenescyt").click(function () {
+                if ($('#collapseSenescyt.collapse.show').length !== 0) return;
+                $("#divBarraSenescyt").show();
+                if (!cacheSenescyt) {
+                    $('#divFuenteSenescyt').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosSenescyt", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteSenescyt").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraSenescyt").css("display", "none");
+                            $('#divFuenteSenescyt').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheSenescyt = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial SENESCYT.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonAnt").click(function () {
+                if ($('#collapseAnt.collapse.show').length !== 0) return;
+                $("#divBarraAnt").show();
+                if (!cacheAnt) {
+                    $('#divFuenteAnt').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosAnt", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteAnt").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraAnt").css("display", "none");
+                            $('#divFuenteAnt').html(data);
+                            $('[data-toggle="popover"]').popover({
+                                html: true
+                            });
+                            tippy('[data-tippy-content]');
+                            cacheAnt = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial ANT.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonPensionAlimenticia").click(function () {
+                if ($('#collapsePensionAlimenticia.collapse.show').length !== 0) return;
+                $("#divBarraPensionAlimenticia").show();
+                if (!cachePensionAlimenticia) {
+                    $('#divFuentePensionAlimenticia').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosPensionAlimenticia", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuentePensionAlimenticia").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraPensionAlimenticia").css("display", "none");
+                            $('#divFuentePensionAlimenticia').html(data);
+                            tippy('[data-tippy-content]');
+                            cachePensionAlimenticia = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Pensión Alimenticia.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonLegal").click(function () {
+                if ($('#collapseLegal.collapse.show').length !== 0) return;
+                $("#divBarraLegal").show();
+                if (!cacheLegal) {
+                    $('#divFuenteLegal').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosLegal", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteLegal").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraLegal").css("display", "none");
+                            $('#divFuenteLegal').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheLegal = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Judicial.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonSercop").click(function () {
+                if ($('#collapseSercop.collapse.show').length !== 0) return;
+                $("#divBarraSercop").show();
+                if (!cacheSercop) {
+                    $('#divFuenteSercop').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosSercop", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteSercop").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraSercop").css("display", "none");
+                            $('#divFuenteSercop').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheSercop = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial SERCOP.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            // $("#buttonSuperBancos").click(function () {
+            //     if ($('#collapseSuperBancos.collapse.show').length !== 0) return;
+            //     $("#divBarraSuperBancos").show();
+            //     if (!cacheSuperBancos) {
+            //         $('#divFuenteSuperBancos').html("");
+            //         $.post({
+            //             url: "@Url.Action("ObtenerDatosSuperBancos", "Historial", new { Area = "Historiales"})",
+            //             data: { 'idHistorial': dataDetalleHistorialTemp.id },
+            //             beforeSend: function () {
+            //                 $("#divFuenteSuperBancos").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+            //             },
+            //             success: function (data) {
+            //                 $("#divBarraSuperBancos").css("display", "none");
+            //                 $('#divFuenteSuperBancos').html(data);
+            //                 tippy('[data-tippy-content]');
+            //                 cacheSuperBancos = true;
+            //             },
+            //             error: function (error) {
+            //                 Swal.fire("¡Error!", 'No se pudo recuperar el historial SuperIntendencia de Bancos.', "error");
+            //                 console.log(error);
+            //             }
+            //         });
+            //     }
+            // });
+
+            $("#buttonSuperBancos").click(function () {
+                if ($('#collapseSuperBancos.collapse.show').length !== 0) return;
+                $("#divBarraSuperBancosCedula").show();
+                if (!cacheSuperBancosCedula) {
+                    $('#divFuenteSuperBancosCedula').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosSuperBancosCedula", "Historial", new { Area = "Historiales" })",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteSuperBancosCedula").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraSuperBancosCedula").css("display", "none");
+                            $('#divFuenteSuperBancosCedula').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheSuperBancosCedula = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial SuperIntendencia de Bancos.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+
+                $("#divBarraSuperBancosNatural").show();
+                if (!cacheSuperBancosNatural) {
+                    $('#divFuenteSuperBancosNatural').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosSuperBancosNatural", "Historial", new { Area = "Historiales" })",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        // beforeSend: function () {
+                        //     $("#divFuenteSuperBancosNatural").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        // },
+                        success: function (data) {
+                            $("#divBarraSuperBancosNatural").css("display", "none");
+                            $('#divFuenteSuperBancosNatural').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheSuperBancosNatural = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial SuperIntendencia de Bancos.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+
+                $("#divBarraSuperBancosEmpresa").show();
+                if (!cacheSuperBancosEmpresa) {
+                    $('#divFuenteSuperBancosEmpresa').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosSuperBancosEmpresa", "Historial", new { Area = "Historiales" })",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        // beforeSend: function () {
+                        //     $("#divFuenteSuperBancosEmpresa").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        // },
+                        success: function (data) {
+                            $("#divBarraSuperBancosEmpresa").css("display", "none");
+                            $('#divFuenteSuperBancosEmpresa').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheSuperBancosEmpresa = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial SuperIntendencia de Bancos.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonAntecedentes").click(function () {
+                if ($('#collapseAntecedentes.collapse.show').length !== 0) return;
+                $("#divBarraAntecedentes").show();
+                if (!cacheAntecedentes) {
+                    $('#divFuenteAntecedentes').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosAntecedentesPenales", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteAntecedentes").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraAntecedentes").css("display", "none");
+                            $('#divFuenteAntecedentes').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheAntecedentes = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Antecedentes Penales.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+                $("#divBarraFuerzasArmadas").show();
+                if (!cacheFuerzasArmadas) {
+                    $('#divFuenteFuerzasArmadas').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosFuerzasArmadas", "Historial", new { Area = "Historiales" })",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        // beforeSend: function () {
+                        //     $("#divFuenteFuerzasArmadas").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        // },
+                        success: function (data) {
+                            $("#divBarraFuerzasArmadas").css("display", "none");
+                            $('#divFuenteFuerzasArmadas').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheFuerzasArmadas = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Fuerzas Armadas.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+                $("#divBarraDeNoBaja").show();
+                if (!cacheDeNoBaja) {
+                    $('#divFuenteDeNoBaja').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosDeNoBaja", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        //beforeSend: function () {
+                        //    $("#divFuenteDeNoBaja").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        //},
+                        success: function (data) {
+                            $("#divBarraDeNoBaja").css("display", "none");
+                            $('#divFuenteDeNoBaja').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheDeNoBaja = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Certificado De No Baja.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonPredios").click(function () {
+                if ($('#collapsePredios.collapse.show').length !== 0) return;
+                $("#divBarraPredios").show();
+                if (!cachePredios) {
+                    $('#divFuentePredios').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosPredios", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuentePredios").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraPredios").css("display", "none");
+                            $('#divFuentePredios').html(data);
+                            tippy('[data-tippy-content]');
+                            cachePredios = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Predios.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonFiscaliaDelito").click(function () {
+                if ($('#collapseFiscaliaDelitos.collapse.show').length != 0) return;
+                $("#divBarraFiscalia").show();
+                if (!cacheFiscalia) {
+                    $('#divFuenteFiscaliaDelitos').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosFiscaliaDelitos", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteFiscaliaDelitos").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraFiscalia").css("display", "none");
+                            $('#divFuenteFiscaliaDelitos').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheFiscalia = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial de Fiscalía Delitos.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonUafe").click(function () {
+                if ($('#collapseUafe.collapse.show').length != 0) return;
+                $("#divBarraUafe").show();
+                if (!cacheUafe) {
+                    $('#divFuenteUafe').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosUafe", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteUafe").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            $("#divBarraUafe").css("display", "none");
+                            $('#divFuenteUafe').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheUafe = true;
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial de UAFE.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonBuroCredito").click(function () {
+                if ($('#collapseBuroCredito.collapse.show').length !== 0) return;
+                $("#divBarraBuroCredito").show();
+                if (!cacheBuroCredito) {
+                    $('#divFuenteBuroCredito').html("");
+                    $('#divHistorialIess').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosBuroCredito", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteBuroCredito").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+                            if(data !== ""){
+                                $("#divBuroCredito").css("display", "none");
+                                $('#divFuenteBuroCredito').html(data);
+                                tippy('[data-tippy-content]');
+                                cacheBuroCredito = true;
+                            } else {
+                                var alertHtml = ` 
+                                <div class="alert alert-warning" role="alert">     
+                                    No se encontrarón registros.   
+                                </div>`
+                                 $("#divBuroCredito").css("display", "none");
+                                $('#divFuenteBuroCredito').html(alertHtml);
+                            }
+                            
+                            $.post({
+                                url: "@Url.Action("ObtenerDatosHistorialIess", "Historial", new { Area = "Historiales" })",
+                                data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                                success: function (data2) {
+                                    const tempDiv = document.createElement("div");
+                                    tempDiv.innerHTML = data2;
+                                    // Buscar el div que tiene el data-usuario-iess
+                                    const divContenido = tempDiv.querySelector("#contenidoIess");
+                                    const esIess = divContenido && (
+                                        divContenido.dataset.usuarioIess === "True" ||
+                                        divContenido.dataset.usuarioIess === true
+                                    );
+
+                                    if(!esIess){
+                                        $('#divHistorialIess').html(data2);
+                                    }
+                                },
+                                error: function (xhr, status, error) {
+                                    Swal.fire("¡Error!", "No se pudo recuperar el historial del IESS.", "error");
+                                    console.error("Error en la consulta de historial IESS:", {
+                                        status: status,
+                                        error: error,
+                                        responseText: xhr.responseText
+                                    });
+                                }
+                            });
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Buró de Crédito.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            $("#buttonCalificacion").click(function () {
+                if ($('#collapseCalificacion.collapse.show').length !== 0) return;
+                $("#divBarraCalificacion").show();
+                if (!cacheCalificacion) {
+                    $('#divFuenteCalificacion').html("");
+                    $.post({
+                        url: "@Url.Action("ObtenerDatosCalificacion", "Historial", new { Area = "Historiales"})",
+                        data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                        beforeSend: function () {
+                            $("#divFuenteCalificacion").html('<div class="progress" style="height: 1rem;"><div class="progress-bar progress-bar-striped  bg-info progress-bar-animated" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%;">Cargando...</div></div>');
+                        },
+                        success: function (data) {
+
+                            $("#divBarraCalificacion").css("display", "none");
+                            $('#divFuenteCalificacion').html(data);
+                            tippy('[data-tippy-content]');
+                            cacheCalificacion = true;
+                            if (dataDetalleHistorialTemp.idEmpresa != 0 && dataDetalleHistorialTemp.idEmpresa === @Dominio.Constantes.Clientes.IdCliente0991235949001)
+                                $('#btnImprimirSolicitudCredito').prop('disabled', false);
+                            else if($("#valorDatoCalificacion").val() === "True")
+                                $('.btnImprimirSolicitudCredito').prop('disabled', false);
+                            else
+                                $('.btnImprimirSolicitudCredito').prop('disabled', true);
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", 'No se pudo recuperar el historial Evaluación.', "error");
+                            console.log(error);
+                        }
+                    });
+                }
+            });
+
+            //Fuentes Equifax
+            $("#divFuenteBuroCredito").on("click", "#btnBuscarNivelTotalDeudaHistorica", function () {
+                $.post({
+                    url: "@Url.Action("ObtenerNivelTotalDeudaHistoricaEquifax", "Historial", new { Area = "Historiales" })",
+                    data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                    beforeSend: function () {
+                        initLoadingSwal("Cargando...");
+                    },
+                    success: function (data) {
+                        swal.close();
+                        $('#modalNivelTotalDeudaHistorica .modal-body').html(data);
+                        $('#modalNivelTotalDeudaHistorica').modal('show');
+                        tippy('[data-tippy-content]');
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", 'No se pudo recuperar el historial de Nivel Total Deuda Historica.', "error");
+                        console.log(error);
+                    }
+                });
+            });
+
+            $("#divFuenteBuroCredito").on("click", "#btnBuscarNivelEvolucionHistorica", function () {
+                $.post({
+                    url: "@Url.Action("ObtenerNivelEvolucionHistoricaDistribucionEndeudamientoEquifax", "Historial", new { Area = "Historiales" })",
+                    data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                    beforeSend: function () {
+                        initLoadingSwal("Cargando...");
+                    },
+                    success: function (data) {
+                        swal.close();
+                        $('#modalNivelEvolucionHistorica .modal-body').html(data);
+                        $('#modalNivelEvolucionHistorica').modal('show');
+                        tippy('[data-tippy-content]');
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", 'No se pudo recuperar el historial de Nivel Evolución Histórica Distribución Endeudamiento.', "error");
+                        console.log(error);
+                    }
+                });
+            });
+
+            $("#divFuenteBuroCredito").on("click", "#btnBuscarNivelHistoricoEstructuraVencimientos", function () {
+                $.post({
+                    url: "@Url.Action("ObtenerNivelHistoricoEstructuraVencimientosEquifax", "Historial", new { Area = "Historiales" })",
+                    data: { 'idHistorial': dataDetalleHistorialTemp.id },
+                    beforeSend: function () {
+                        initLoadingSwal("Cargando...");
+                    },
+                    success: function (data) {
+                        swal.close();
+                        $('#modalNivelHistoricoEstructuraVencimientos .modal-body').html(data);
+                        $('#modalNivelHistoricoEstructuraVencimientos').modal('show');
+                        tippy('[data-tippy-content]');
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", 'No se pudo recuperar el historial de Nivel Histórico Estructura Vencimientos.', "error");
+                        console.log(error);
+                    }
+                });
+            });
+
+            //////////////////////////////////////////////////////////////////////////////////////////////
+            //Varios
+            $('#modalDetalleHistorial').on('show.bs.modal', function () {
+                $('#modalContactos').css({ "height": "80%" });
+                if ($('.modal:visible').length === 0) {
+                    dataEmpleadoTemp = null;
+                    $('.collapse').collapse("hide");
+                }
+            });
+
+            $(document).on('hidden.bs.modal', '#modalDetalleHistorial', function (event) {
+                if (event.target.id == 'modalDetalleHistorial') {
+                    $('#divFuenteSri').html("");
+                    $('#divFuentePersona').html("");
+                    $('#divFuenteIess').html("");
+                    $('#divFuenteBalances').html("");
+                    $('#divFuenteSenescyt').html("");
+                    $('#divFuenteAnt').html("");
+                    $('#divFuentePensionAlimenticia').html("");
+                    $('#divFuenteLegal').html("");
+                    $('#divFuenteSercop').html("");
+                    // $('#divFuenteSuperBancos').html("");
+                    $('#divFuenteSuperBancosCedula').html("");
+                    $('#divFuenteSuperBancosNatural').html("");
+                    $('#divFuenteSuperBancosEmpresa').html("");
+                    $('#divFuenteAntecedentes').html("");
+                    $('#divFuenteFuerzasArmadas').html("");
+                    $('#divFuenteDeNoBaja').html("");
+                    $('#divFuentePredios').html("");
+                    $('#divFuenteFiscaliaDelitos').html("");
+                    $('#divFuenteBuroCredito').html("");
+                    $('#divFuenteCalificacion').html("");
+                    cacheSri = false;
+                    cacheCivil = false;
+                    cacheIess = false;
+                    cacheSocietario = false;
+                    cacheSenescyt = false;
+                    cacheAnt = false;
+                    cachePensionAlimenticia = false;
+                    cacheLegal = false;
+                    cacheSercop = false;
+                    cacheBuroCredito = false;
+                    cacheCalificacion = false;
+                    cacheSuperBancosCedula = false;
+                    cacheSuperBancosNatural = false;
+                    cacheSuperBancosEmpresa = false;
+                    cacheAntecedentes = false;
+                    cacheFuerzasArmadas = false;
+                    cacheDeNoBaja = false;
+                    cachePredios = false;
+                    cacheFiscalia = false;
+                    cacheUafe = false;
+                }
+            });
+        });
+
+        function obtenerNivelSaldoVencerInstitucion(codigoInstitucion) {
+            $.post({
+                url: "@Url.Action("ObtenerNivelSaldoPorVencerPorInstitucionEquifax", "Historial", new { Area = "Historiales" })",
+                data: {
+                    "idHistorial": dataDetalleHistorialTemp.id,
+                    "codigoInstitucion": codigoInstitucion,
+                },
+                beforeSend: function () {
+                    initLoadingSwal("Cargando...");
+                },
+                success: function (data) {
+                    swal.close();
+                    $('#modalNivelSaldoVencerInstitucion .modal-body').html(data);
+                    $('#modalNivelSaldoVencerInstitucion').modal('show');
+                    tippy('[data-tippy-content]', { placement: 'bottom', arrow: false });
+                },
+                error: function (error) {
+                    Swal.fire("¡Error!", 'No se pudo procesar la información de Nivel Saldo Por Vencer Por Institución.', "error");
+                    console.log(error);
+                }
+            });
+        }
+
+        function obtenerNivelOperacionesInstitucion(codigoInstitucion, tipoCredito, fechaCorte) {
+            $.post({
+                url: "@Url.Action("ObtenerNivelOperacionesInstitucionEquifax", "Historial", new { Area = "Historiales" })",
+                data: {
+                    "idHistorial": dataDetalleHistorialTemp.id,
+                    "codigoInstitucion": codigoInstitucion,
+                    "tipoCredito": tipoCredito,
+                    "fechaCorte": fechaCorte
+                },
+                beforeSend: function () {
+                    initLoadingSwal("Cargando...");
+                },
+                success: function (data) {
+                    swal.close();
+                    $('#modalNivelOperacionesInstitucion .modal-body').html(data);
+                    $('#modalNivelOperacionesInstitucion').modal('show');
+                    tippy('[data-tippy-content]', { placement: 'bottom', arrow: false });
+                },
+                error: function (error) {
+                    Swal.fire("¡Error!", 'No se pudo procesar la información de Nivel Operaciones por Instituciones.', "error");
+                    console.log(error);
+                }
+            });
+        }
+
+        function obtenerNivelDetalleVencidoInstitucion(codigoInstitucion) {
+            $.post({
+                url: "@Url.Action("ObtenerNivelDetalleVencidoPorInstitucionEquifax", "Historial", new { Area = "Historiales" })",
+                data: {
+                    "idHistorial": dataDetalleHistorialTemp.id,
+                    "codigoInstitucion": codigoInstitucion,
+                },
+                beforeSend: function () {
+                    initLoadingSwal("Cargando...");
+                },
+                success: function (data) {
+                    swal.close();
+                    $('#modalNivelDetalleVencidoInstitucion .modal-body').html(data);
+                    $('#modalNivelDetalleVencidoInstitucion').modal('show');
+                    tippy('[data-tippy-content]', { placement: 'bottom', arrow: false });
+                },
+                error: function (error) {
+                    Swal.fire("¡Error!", 'No se pudo procesar la información de Nivel Detalle Vencido Por Institución.', "error");
+                    console.log(error);
+                }
+            });
+        }
+
+        function obtenerNivelDetalleOperacionEntidad(fechaCorte, sistemaCrediticio) {
+            $.post({
+                url: "@Url.Action("ObtenerNivelDetalleOperacionesEntidadesEquifax", "Historial", new { Area = "Historiales" })",
+                data: {
+                    "idHistorial": dataDetalleHistorialTemp.id,
+                    "fechaCorte": fechaCorte,
+                    "sistemaCrediticio": sistemaCrediticio,
+                },
+                beforeSend: function () {
+                    initLoadingSwal("Cargando...");
+                },
+                success: function (data) {
+                    swal.close();
+                    $('#modalNivelDetalleOperacionEntidad .modal-body').html(data);
+                    $('#modalNivelDetalleOperacionEntidad').modal('show');
+                    tippy('[data-tippy-content]', { placement: 'bottom', arrow: false });
+                },
+                error: function (error) {
+                    Swal.fire("¡Error!", 'No se pudo procesar la información de Nivel Detalle Operaciones y Entidades.', "error");
+                    console.log(error);
+                }
+            });
+        }
+
+    </script>
+}

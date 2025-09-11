@@ -1,0 +1,989 @@
+﻿@using Microsoft.AspNetCore.Identity
+@model ReporteViewModel
+@{
+    ViewData["Title"] = "Consultas";
+    var detalleConsultas = User.IsInRole(Dominio.Tipos.Roles.AdministradorEmpresa) || User.IsInRole(Dominio.Tipos.Roles.Administrador) ? 1 : 0;
+}
+
+<style>
+    .popover {
+        max-width: 700px;
+    }
+</style>
+
+<section class="container-fluid px-xl-5 px-lg-5 px-md-1 px-sm-0" id="content">
+    <div class="row d-print-none animate__animated animate__fadeInUp">
+        <div class="col-lg-12">
+            <div class="card">
+                <div class="card-body p-3 pb-2">
+                    <form class="row row-cols-lg-auto g-3 align-items-center" id="formBalance" method="POST">
+                        @Html.AntiForgeryToken()
+                        <div class="col-12">
+                            <input type="hidden" asp-for="IdHistorial" />
+                            <div class="form-outline">
+                                <input type="search" asp-for="Identificacion" class="form-control input-integer d-print-inline" placeholder="Ingresar RUC o Cédula" pattern=".{10,}" title="Mínimo 10 carácteres" maxlength="13" required />
+                                <label class="form-label" asp-for="Identificacion">RUC/Cédula</label>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnBuscar"><i class="fa-solid fa-magnifying-glass my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Evaluar</span></button>
+                            <button type="button" class="btn btnBuscarNombreModal btn-primary-custom d-inline-flex" data-toggle="modal" data-target="#modalBuscarNombre" id="btnBuscarNombreModal"><i class="fa-solid fa-user my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Buscar por Nombres</span></button>
+                            <button type="button" class="btn btnBuscarPlacaModal btn-primary-custom d-inline-flex" data-toggle="modal" data-target="#modalBuscarPlaca" id="btnBuscarPlacaModal"><i class="fa-solid fa-car my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Placa</span></button>
+                            <button class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnLimpiar"><i class="fa-solid fa-eraser my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Limpiar</span></button>
+                            <button class="btn btn-primary-custom btn-primary-custom d-inline-flex" id="btnImprimir"><i class="fa-solid fa-print my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Imprimir</span></button>
+                            <a class="btn btnResumen btn-primary-custom mt-1 mt-sm-0  d-inline-flex" id="btnResumen" href="#"><i class="fa-solid fa-clipboard-check my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Resumen</span></a>
+                        </div>
+                    </form>
+
+                    <div class="row pt-2">
+                        <div class="col">
+                            <div id="divResumenConsultas"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalBuscarNombre" tabindex="-1" role="dialog" aria-labelledby="modalBuscarNombreLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <img src="~/images/modales/BuscarNombre.svg" alt="" width="23" height="23">
+                    <h5 class="modal-title ml-1">Buscar por Nombres</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col">
+                            <form id="formEmpresa" method="post">
+                                <div class="col-lg-12 col-md-12 col-sm-12 pl-0 pr-0">
+                                    <label class="col-form-label col-form-label-sm required">Apellidos y Nombres</label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text"><i class="fa-solid fa-chalkboard-user"></i></span>
+                                        </div>
+                                        <input id="inputNombre" class="form-control form-control-sm text-uppercase input-border-radius input-string required" maxlength="200" autocomplete="off" required>
+                                        <div class="input-group-append">
+                                            <button type="button" id="btnBuscarNombre" class="btn btn-sm " data-tippy-content="Buscar Coincidencias" data-tippy-placement="bottom"><i class="fa-solid fa-magnifying-glass"></i></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <div class="alert alert-info p-2 mb-1" role="alert">
+                                <h6 class="info-note"><b>Nota: </b>Es obligatorio ingresar <b>Apellidos</b> y luego <b>Nombres</b>. Al seleccionar una fila de la tabla podrá consultar la información de la persona seleccionada.</h6>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col">
+                            <table id="tablaNombres" class="table table-sm table-bordered table-hover table-striped w-100">
+                                <thead class="text-center">
+                                    <tr>
+                                        <th>Cédula</th>
+                                        <th>Nombres</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                                <tfoot>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary-custom" data-dismiss="modal"><i class="fa-solid fa-x mr-2"></i>Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="modalBuscarPlaca" tabindex="-1" role="dialog" aria-labelledby="modalBuscarPlacaLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-xl" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <img src="~/images/modales/buscarPlaca.svg" alt="" width="23" height="23">
+                        <h5 class="modal-title ml-1">Buscar por Placa</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col">
+                                <form id="formPlaca" method="post">
+                                    <div class="col-lg-12 col-md-12 col-sm-12 pl-0 pr-0">
+                                        <label class="col-form-label col-form-label-sm required">Placa</label>
+                                        <div class="input-group">
+                                            <div class="input-group-prepend">
+                                                <span class="input-group-text"><i class="fa-solid fa-car-side"></i></span>
+                                            </div>
+                                            <input id="inputPlaca" class="form-control form-control-sm text-uppercase input-border-radius input-stringinteger" maxlength="7" autocomplete="off" required>
+                                            <div class="input-group-append">
+                                                <button type="submit" id="btnBuscarPlaca" class="btn btn-sm " data-tippy-content="Buscar Placa" data-tippy-placement="bottom"><i class="fa-solid fa-magnifying-glass"></i></button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col">
+                                <div class="alert alert-info p-2 mb-1" role="alert">
+                                    <h6 class="info-note"><b>Nota: </b>Es obligatorio ingresar las placas con 4 dígitos <b>Ejemplo:</b> AAA999 es AAA0999</h6>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="divInformacionGeneral" class="pt-2 animate__animated animate__fadeIn" style="display: none;">
+    </div>
+</section>
+
+<partial name="Components/_Datatables" />
+<partial name="Components/_Avisos" />
+<partial name="Components/_Loader" />
+
+@section Scripts {
+    <script>
+        let idEmpresa = 0;
+        let tipoIdentificacionTemp = "";
+        let tipoIdentificacionTempCalificacion;
+        let idHistorialTemp = 0;
+        let idCalificacionTemp;
+        let idCalificacionBuroTemp;
+        let nombreTemp = "";
+        $(document).ready(function () {
+            $("#divResumenConsultas").hide();
+            // obtenerResumenConsultas();
+            hideLoader();
+
+            $("#formBalance").submit(function (e) {
+                e.preventDefault();
+                limpiar();
+
+                Swal.fire({
+                    title: 'Consentimiento expreso e informado del Titular',
+                    text: "Confirmo tener el consentimiento expreso e informado de principios, derechos y finalidades para la consulta del titular",
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: _confirmButtonColor,
+                    cancelButtonColor: _cancelButtonColor,
+                    confirmButtonText: "SI",
+                    cancelButtonText: "NO"
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        let identificacion = $("#Identificacion").val();
+                        let antiForgeryToken = $("input[name=__RequestVerificationToken]").val();
+                        $.post({
+                            url: "@Url.Action("GuardarHistorial", "Vendedor", new { Area = "Consultas" })",
+                            headers: { 'RequestVerificationToken': antiForgeryToken },
+                            data: { 'identificacion': identificacion },
+                            beforeSend: function () {
+                                initLoadingSwal("Evaluando...");
+                                $('#btnBuscar').prop('disabled', true);
+                                $('#btnLimpiar').prop('disabled', true);
+                                $('#btnImprimir').prop('disabled', true);
+                                $('#btnBuscarNombreModal').prop('disabled', true);
+                                $('#btnBuscarPlacaModal').prop('disabled', true);
+                            },
+                            success: function (data) {
+                                if (!data) {
+                                    Swal.fire("¡Error!", `No se pudo registrar la consulta`, "error");
+                                    limpiar();
+                                    return false;
+                                }
+
+                                if (data.idHistorial && parseInt(data.idHistorial) === 0) {
+                                    Swal.fire("¡Error!", `No se pudo registrar la consulta`, "error");
+                                    limpiar();
+                                    return false;
+                                }
+
+                                // obtenerResumenConsultas();
+                                tipoIdentificacionTemp = data.tipoIdentificacion;
+                                idHistorialTemp = parseInt(data.idHistorial);
+                                identificacionTemp = identificacion;
+                                idCalificacionTemp = 0;
+                                idCalificacionBuroTemp = 0;
+                                idEmpresa = parseInt(data.idEmpresa);
+                                $('#divInformacionGeneral').html("");
+                                $('#IdHistorial').val(data.idHistorial);
+                                obtenerCalificacion();
+                            },
+                            error: function (error) {
+                                // obtenerResumenConsultas();
+                                $('#btnBuscar').prop('disabled', false);
+                                $('#btnLimpiar').prop('disabled', false);
+                                $('#btnImprimir').prop('disabled', false);
+                                $('#btnBuscarNombreModal').prop('disabled', false);
+                                $('#btnBuscarPlacaModal').prop('disabled', false);
+                                $('#divInformacionGeneral').show();
+                                $('#divInformacionGeneral').html(`<div class="card">
+                                                                                    <div class="card-body p-3">
+                                                                                    <div class="row">
+                                                                                            <div class="col">
+                                                                                                    <div class="alert alert-warning p-3 m-0" role="alert">No se pudo realizar la Evaluación: <span class="font-weight-bold font-italic">${error.responseJSON.detail}</span></div>
+                                                                                    </div>
+                                                                                    </div>
+                                                                                    </div>
+                                                                                    </div>`);
+                                Toast.fire({
+                                    icon: 'error',
+                                    title: "¡Error!",
+                                    text: "No se pudo realizar la Evaluación.",
+                                    timer: 5000,
+                                });
+                                console.log(error);
+                            }
+                        });
+                    } else {
+                        $("#btnLimpiar").click();
+                        limpiar();
+                    }
+                });
+            });
+
+            ////////////////////////////////////////////////////////////////////////////
+            //Resumen
+            $("#btnResumen").click(function () {
+                if ($('#divResumenConsultas').is(':visible'))
+                    $("#divResumenConsultas").hide("fast");
+                else {
+                    obtenerResumenConsultas();
+                    $("#divResumenConsultas").show("fast");
+                }
+            });
+
+            ////////////////////////////////////////////////////////////////////////////
+            //Limpiar
+            $("#btnLimpiar").click(function () {
+                $("#Identificacion").val("");
+                $("#IdHistorial").val("");
+                $('#divInformacionGeneral').css("display", "none");
+                identificacionTemp = "";
+                tipoIdentificacionTemp = "";
+                idHistorialTemp = 0;
+            });
+
+            ////////////////////////////////////////////////////////////////////////////
+            //Busqueda Nombres
+            let swLoadingTablaNombres = false;
+            let config = {
+                id: "tablaNombres",
+                dom: "tipr",
+                ajax: {
+                    url: '@Url.Action("ListadoNombres", "Principal", new { Area = "Consultas" })',
+                    method: "POST",
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: function (d) {
+                        let filtros = new Object();
+                        filtros.nombre = $("#inputNombre").val();
+                        return JSON.stringify(filtros);
+                    },
+                    dataSrc: function (e) {
+                        if (swLoadingTablaNombres)
+                            Swal.close();
+
+                        return e;
+                    }
+                },
+                createdRow: function (row, data, dataIndex) {
+                    $(row).addClass("tr-info-enlace");
+                    $(row).css("cursor", "pointer");
+                },
+                columns: [
+                    { width: '50%', data: "cedula" },
+                    { width: '50%', data: "nombre" }
+                ],
+                drawCallback: function () {
+                    tippy(".tr-info-enlace", { content: "Presionar para Consultar" });
+                },
+                pageLength: 10,
+                columnFilter: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                processing: true
+            };
+            tablaNombres = configDatatable(config);
+
+            $("#btnBuscarNombre").click(function () {
+                let nombrePersona = $("#inputNombre").val();
+                let reg = /(?:[a-zA-ZÀ-ÿ\u00f1\u00d1]+\s){1}[a-zA-ZÀ-ÿ\u00f1\u00d1]+/;
+                if (!reg.exec(nombrePersona))
+                    Swal.fire("¡Advertencia!", `Es necesario ingresar al menos dos palabras para la búsqueda`, "warning");
+                else if (nombrePersona.length <= 2)
+                    Swal.fire("¡Advertencia!", `El campo está vacío o el nombre ingresado es muy corto. Ingrese mínimo 3 caracteres`, "warning");
+                else if (nombrePersona.trim() === nombreTemp.trim())
+                    Swal.fire("¡Advertencia!", `El nombre ingresado no ha cambiado desde la última búsqueda`, "warning");
+                else {
+                    initLoadingSwal();
+                    swLoadingTablaNombres = true;
+                    $('#tablaNombres thead input').val('').change();
+                    tablaNombres.ajax.reload();
+                    nombreTemp = nombrePersona;
+                }
+            });
+
+            ////////////////////////////////////////////////////////////////////////////
+            //Otros Eventos
+            $('#modalBuscarNombre').on('hidden.bs.modal', function (e) {
+                $("#inputNombre").val("");
+                nombreTemp = "";
+                tablaNombres.clear().draw();
+                $('#tablaNombres thead input').val('').change();
+            });
+
+            $('#modalBuscarPlaca').on('hidden.bs.modal', function (e) {
+                $("#inputPlaca").val("");
+            });
+
+            $('#tablaNombres tbody').on('click', 'tr', function () {
+                let data = tablaNombres.row(this).data();
+                Swal.fire({
+                    title: `Ha seleccionado a <br\> ${data.cedula} - ${data.nombre}`,
+                    text: 'Confirmo tener el consentimiento expreso e informado de principios, derechos y finalidades para la consulta del titular',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'OK',
+                    cancelButtonText: 'Cancelar',
+                    showLoaderOnConfirm: true,
+                    allowOutsideClick: () => !Swal.isLoading(),
+                    preConfirm: function () {
+                        $("#Identificacion").val(data.cedula);
+                        $("#formBalance").submit();
+                        $("#modalBuscarNombre .close").click();
+                    }
+                });
+            });
+
+            $(document).on('show.bs.modal', '.modal', function () {
+                $(".modal").appendTo('body');
+            });
+
+            ////////////////////////////////////////////////////////////////////////////
+            //Busqueda Placas
+            $("#formPlaca").submit(function (e) {
+                e.preventDefault();
+                let placa = $("#inputPlaca").val();
+                let regPlaca = /^[A-Za-z0-9]+$/;
+                initLoadingSwal();
+                if (placa.length < 7)
+                    Swal.fire("¡Advertencia!", `Faltan caracteres en la placa del vehículo`, "warning");
+                else if (!regPlaca.exec(placa))
+                    Swal.fire("¡Advertencia!", `La placa no cumple con el formato designado. Es obligatorio ingresar las placas con 4 dígitos.`, "warning");
+                else
+                    $.post({
+                        url: "@Url.Action("BuscarPropietarioAuto", "Principal", new { Area = "Consultas" })",
+                        data: {
+                            "placa": placa,
+                        },
+                        success: function (data) {
+                            if (data !== null) {
+                                let tituloPropietario;
+                                let textoPropietario;
+                                let tipoPropietario;
+                                if (data.tipo.length > 0 && data.tipo == "@Dominio.Constantes.General.Cedula") {
+                                    if (data.cedula.length > 0 && data.nombre.length > 0) {
+                                        tituloPropietario = `El propietario del vehículo es <br\> ${data.cedula} - ${data.nombre}`;
+                                        textoPropietario = 'Confirmo tener el consentimiento expreso e informado de principios, derechos y finalidades para la consulta del titular';
+                                        tipoPropietario = function () {
+                                            $("#Identificacion").val(data.cedula);
+                                            $("#formBalance").submit();
+                                            $("#modalBuscarPlaca .close").click();
+                                        };
+                                    } else if (data.cedula.length === 0 && data.nombre.length > 0) {
+                                        tituloPropietario = `El propietario del vehículo es <br\> ${data.nombre}`;
+                                        textoPropietario = '¿Desea buscar manualmente la información de esta persona?';
+                                        tipoPropietario = function () {
+                                            $("#modalBuscarPlaca .close").click();
+                                            $("#inputNombre").val(data.nombre);
+                                            $("#modalBuscarNombre").modal('show');
+                                        };
+                                    }
+                                    Swal.fire({
+                                        title: tituloPropietario,
+                                        text: textoPropietario,
+                                        icon: 'question',
+                                        showCancelButton: true,
+                                        confirmButtonText: 'SI',
+                                        cancelButtonText: 'NO',
+                                        showLoaderOnConfirm: true,
+                                        allowOutsideClick: () => !Swal.isLoading(),
+                                        preConfirm: tipoPropietario
+                                    });
+                                }
+                                else if (data.tipo.length > 0 && data.tipo == "@Dominio.Constantes.General.Ruc") {
+                                    if (data.cedula.length === 0 && data.nombre.length > 0) {
+                                        tituloPropietario = `El vehículo pertenece a la empresa <br\> ${data.nombre}`;
+                                        textoPropietario = 'No se puede buscar información del propietario.';
+                                        tipoPropietario = function () {
+                                            $("#modalBuscarPlaca .close").click();
+                                        };
+                                    }
+                                    Swal.fire({
+                                        title: tituloPropietario,
+                                        text: textoPropietario,
+                                        icon: 'info',
+                                        showCancelButton: false,
+                                        showLoaderOnConfirm: true,
+                                        allowOutsideClick: () => !Swal.isLoading(),
+                                        preConfirm: tipoPropietario
+                                    });
+                                } else {
+                                    Swal.fire("No se encontró información del propietario", "", "info");
+                                }
+                            } else {
+                                Swal.fire("No se encontró información del propietario", "", "info");
+                            }
+                        },
+                        error: function (error) {
+                            Swal.fire("¡Error!", "No se pudo procesar la consulta para el propietario del vehículo.", "error");
+                            console.log(error);
+                        }
+                    });
+            });
+
+            ////////////////////////////////////////////////////////////////////////////
+            //Imprimir
+            $("#btnImprimir").on("click", function () {
+                let idHistorial = $("#IdHistorial").val();
+                idHistorial = parseInt(idHistorial);
+                if (isNaN(idHistorial))
+                    idHistorial = 0;
+
+                if (idHistorial === 0) {
+                    Swal.fire("¡Advertencia!", `No se pudo generar el reporte PDF porque no se ha generado la información`, "warning");
+                    return false;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: "@Url.Action("ObtenerReporteConsultas", "Principal", new { Area = "Consultas" })",
+                    data: { 'idHistorial': idHistorial },
+                    xhrFields: {
+                        responseType: 'blob'
+                    },
+                    datatype: "json",
+                    beforeSend: function () {
+                        initLoadingSwal("Generando Reporte PDF...");
+                        $('#btnImprimir').prop('disabled', true);
+                    },
+                    success: function (data) {
+                        if (data) {
+                            let a = document.createElement('a');
+                            let url = window.URL.createObjectURL(data);
+                            a.href = url;
+                            a.download = `ReporteAnálisisInformación360_${$("#Identificacion").val()}`;
+                            document.body.append(a);
+                            a.click();
+                            a.remove();
+                            window.URL.revokeObjectURL(url);
+                            swal.close();
+                            $('#btnImprimir').prop('disabled', false);
+                        } else {
+                            Swal.fire("¡Error!", "No se pudo generar el reporte PDF", "error");
+                            $('#btnImprimir').prop('disabled', false);
+                        }
+                    },
+                    error: function (error) {
+                        Swal.fire("¡Error!", error && error.responseJSON ? error.responseJSON.detail : (error && error.responseText ? `No se pudo generar el reporte PDF. ${error.responseText}` : `No se pudo generar el reporte PDF. `), "error");
+                        $('#btnImprimir').prop('disabled', false);
+                    }
+                });
+            });
+        });
+
+        function obtenerCalificacion() {
+            $('#divInformacionGeneral').show();
+            if (tipoIdentificacionTemp) tipoIdentificacionTempCalificacion = tipoIdentificacionTemp;
+
+            if (!tipoIdentificacionTempCalificacion) {
+                Swal.fire("¡Advertencia!", `No se encontró una identificación`, "warning");
+                return;
+            }
+
+            let urlCalificacion;
+            if (idEmpresa != 0 && idEmpresa === @Dominio.Constantes.Clientes.IdCliente0190386465001) {
+                switch (tipoIdentificacionTempCalificacion) {
+                    case "@Dominio.Constantes.General.Cedula":
+                        urlCalificacion = "@Url.Action("ObtenerCalificacionCedula_0190386465001", "CalificacionCliente")";
+                        break;
+                    case "@Dominio.Constantes.General.RucNatural":
+                        urlCalificacion = "@Url.Action("ObtenerCalificacionRucNatural_0190386465001", "CalificacionCliente")";
+                        break;
+                    case "@Dominio.Constantes.General.RucJuridico":
+                        urlCalificacion = "@Url.Action("ObtenerCalificacionRucJuridico_0190386465001", "CalificacionCliente")";
+                        break;
+                    default:
+                        urlCalificacion = "@Url.Action("ObtenerCalificacionCedula_0190386465001", "CalificacionCliente")";
+                        break;
+                }
+            }
+            else if (idEmpresa === 0) {
+                urlCalificacion = "";
+            }
+            else {
+                switch (tipoIdentificacionTempCalificacion) {
+                    case "@Dominio.Constantes.General.Cedula":
+                        urlCalificacion = "@Url.Action("ObtenerCalificacionCedula", "Calificacion")";
+                        break;
+                    case "@Dominio.Constantes.General.RucNatural":
+                        urlCalificacion = "@Url.Action("ObtenerCalificacionRucNatural", "Calificacion")";
+                        break;
+                    case "@Dominio.Constantes.General.RucJuridico":
+                        urlCalificacion = "@Url.Action("ObtenerCalificacionRucJuridico", "Calificacion")";
+                        break;
+                    default:
+                        urlCalificacion = "@Url.Action("ObtenerCalificacionCedula", "Calificacion")";
+                        break;
+                }
+            }
+
+            $.post({
+                url: urlCalificacion,
+                data: {
+                    "tipoIdentificacion": tipoIdentificacionTempCalificacion,
+                    "idHistorial": idHistorialTemp,
+                    "idCalificacion": idCalificacionTemp,
+                    "idCalificacionBuro": idCalificacionBuroTemp
+                },
+                success: function (data) {
+                    Swal.close();
+                    $('#btnBuscar').prop('disabled', false);
+                    $('#btnLimpiar').prop('disabled', false);
+                    $('#btnImprimir').prop('disabled', false);
+                    $('#btnBuscarNombreModal').prop('disabled', false);
+                    $('#btnBuscarPlacaModal').prop('disabled', false);
+                    $('#divInformacionGeneral').html(`<div class="card"><div class="card-body">${data}</div></div>`);
+                    tippy('[data-tippy-content]', { placement: 'bottom', arrow: false });
+
+                    ////////////////////////////////////////////////////////////////////////////
+                    //Calificación Buró de Crédito
+                    tabla = $('#tablaCalificacion').DataTable({
+                        dom: "tip",
+                        paging: false,
+                        info: false,
+                        language: {
+                            url: dataTableLangPath
+                        },
+                        responsive: false,
+                        columns: [
+                            { width: "30%", },
+                            { width: "30%" },
+                            { width: "30%" },
+                            { width: "10%" },
+                        ],
+                        order: []
+                    });
+
+                    ////////////////////////////////////////////////////////////////////////////
+                    //Calificación General
+                    tablaResumenCalificacion = $('#tablaCalificacionVarificada').DataTable({
+                        dom: "l",
+                        paging: false,
+                        info: false,
+                        language: {
+                            url: dataTableLangPath
+                        },
+                        responsive: true,
+                        order: [],
+                        ordering: false,
+                    });
+                    tabla.init();
+                    tabla.columns.adjust();
+                    idCalificacionTemp = parseInt($('#idCalificacion').text());
+
+                    ////////////////////////////////////////////////////////////////////////////
+                    //Calificación Buró de Crédito
+                    tablaBuro = $('#tablaCalificacionBuro').DataTable({
+                        dom: "tip",
+                        paging: false,
+                        info: false,
+                        language: {
+                            url: dataTableLangPath
+                        },
+                        responsive: false,
+                        columns: [
+                            { width: "30%", },
+                            { width: "30%" },
+                            { width: "15%" },
+                            { width: "10%" },
+                            { width: "10%" },
+                            { width: "5%" },
+
+                        ],
+                        order: []
+                    });
+
+                    ////////////////////////////////////////////////////////////////////////////
+                    //Calificación Verificada Buró de Crédito
+                    tablaResumenCalificacionBuro = $('#tablaCalificacionVarificadaBuro').DataTable({
+                        dom: "l",
+                        paging: false,
+                        info: false,
+                        language: {
+                            url: dataTableLangPath
+                        },
+                        responsive: true,
+                        order: [],
+                        ordering: false,
+                    });
+                    tablaBuro.init();
+                    tablaBuro.columns.adjust();
+                    idCalificacionBuroTemp = parseInt($('#idCalificacionBuro').text());
+                    // obtenerResumenConsultas();
+                    $('#btnEvaluar').prop('disabled', false);
+                },
+                error: function (error) {
+                    $('#btnBuscar').prop('disabled', false);
+                    $('#btnLimpiar').prop('disabled', false);
+                    $('#btnImprimir').prop('disabled', false);
+                    $('#btnBuscarNombreModal').prop('disabled', false);
+                    $('#btnBuscarPlacaModal').prop('disabled', false);
+                    $("#divInformacionGeneral").html(`<div class="card">
+                                                                            <div class="card-body">
+                                                                            <div class="row">
+                                                                                    <div class="col">
+                                                                                            <div class="alert alert-warning" role="alert">No se ha encontrado información de Evaluación Riesgo.</div>
+                                                                            </div>
+                                                                            </div>
+                                                                            </div>
+                                                                            </div>`);
+                    Toast.fire({
+                        icon: 'error',
+                        title: "¡Error!",
+                        text: "No se pudo procesar la Evaluación de Riesgo.",
+                        timer: 5000,
+                    });
+                    console.log(error);
+                }
+            });
+        }
+
+        function limpiar() {
+            $("#IdHistorial").val("");
+            $('#divInformacionGeneral').css("display", "none");
+            identificacionTemp = "";
+            tipoIdentificacionTemp = "";
+            idHistorialTemp = 0;
+            rucNuevo = "";
+        }
+
+        function obtenerResumenConsultas() {
+            $("#divResumenConsultas").html("");
+            $.post({
+                url: "@Url.Action("ObtenerResumenConsultas", "Principal", new { Area = "Consultas" })",
+                beforeSend: function () {
+                    $("#divResumenConsultas").html(`<div class="d-flex justify-content-center">
+                                                                                                                                        <div class="spinner-border" role="status">
+                                                                                                                                            <span class="sr-only">Cargando...</span>
+                                                                                                                                        </div>
+                                                                                                                                    </div>`);
+                },
+                success: function (data) {
+                    let detalleConsultas = parseInt("@detalleConsultas");
+                    if (!data || data === null) {
+                        $("#divResumenConsultas").html(`<div class="d-flex justify-content-center">
+                                                                                                                                                                        <div class="alert alert-info note note-${classAlert} text-justify" role="alert">
+                                                                                                                                                                                <div class="row">
+                                                                                                                                                                                    <div class="col">
+                                                                                                                                                                                                <span class="pr-1"><i class="fa-solid fa-circle-info mr-1 font-weight-bold text-info"></i>&nbsp;</span> No se han registrado consultas...
+                                                                                                                                                                                    </div>
+                                                                                                                                                                                </div>
+                                                                                                                                                                        </div>`);
+                        return false;
+                    }
+
+                    $("#divResumenConsultas").html("");
+                    let classAlert = "primary";
+                    let html = `<div class="alert alert-info note note-${classAlert} text-justify" role="alert">
+                                                                                                                                                    <div class="row">
+                                                                                                                                                        <div class="col">
+                                                                                                                                                            <span class="pr-1"><i class="fa-solid fa-circle-info mr-1 font-weight-bold text-${classAlert}"></i>&nbsp;</span> <b style="font-size:0.975rem">RESUMEN DE CONSULTAS:</b>
+                                                                                                                                                            <b>Última consulta realizada: </b> ${data.ultimaConsulta ?? "N/A"}<br/>
+                                                                                                                                                        </div>
+                                                                                                                                                        <div class="col text-right">
+                                                                                                                                                                    <button class="btn btn-sm btn-primary-custom" onclick="obtenerResumenConsultas()" data-tippy-content="Actualizar"><i class="fa-solid fa-arrow-rotate-right text-white"></i></button>
+                                                                                                                                                        </div>
+                                                                                                                                                    </div>
+                                                                                                                                                    <hr class="mt-1 mb-1"/>
+                                                                                                                                                    <b>Empresa: </b>${data.empresa.ruc} - ${data.empresa.razonSocial}<br/>`;
+
+                    if (data.planes)
+                        if (data.planes.length > 0) {
+                            html += `<b>Planes Activos: </b><br/>`;
+                            $.each(data.planes, function (index, item) {
+                                if (detalleConsultas === 1) {
+                                    let htmlPopover = "";
+                                    htmlPopover += `<b>Nombre Plan: </b>  ${item.nombrePlan} <br/>`;
+                                    htmlPopover += `<b>Tipo Plan: </b>  ${(!item.esUnificado ? 'Dividido por Cédulas y RUCs' : 'Unificado (Cédulas y RUCs)')} <br/>`;
+                                    if (!item.esUnificado) {
+                                        htmlPopover += `<b>Num. Consultas RUCs: </b>  ${(!item.maximoConsultasRucs ? item.numeroConsultasRuc : "MAX")} <br/>`;
+                                        htmlPopover += `<b>Num. Consultas Cédulas: </b>  ${(!item.maximoConsultasCedulas ? item.numeroConsultasCedula : "MAX")} <br/>`;
+                                    } else {
+                                        htmlPopover += `<b>Num. Consultas: </b>  ${(!item.maximoConsultas ? item.numeroConsultas : "MAX")} <br/>`;
+                                    }
+
+                                    htmlPopover += `<b>Fecha Inicio: </b>  ${item.fechaInicioPlan} <br/>`;
+                                    htmlPopover += `<b>Fecha Fin: </b>  ${item.fechaFinPlan} <br/>`;
+                                    htmlPopover += `<b>Fecha de Cobro Mensual: </b>  ${item.fechaCobroRecurrente} <br/>`;
+                                    if (!item.esUnificado) {
+                                        htmlPopover += `<b>Valor por Consulta RUCs: </b> <span class='badge badge-success'>$ ${item.valorPorConsultaRucs}</span> <br/>`;
+                                        htmlPopover += `<b>Valor por Consulta Cédulas: </b> <span class='badge badge-success'>$ ${item.valorPorConsultaCedulas}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Consulta Adicional RUCs: </b> <span class='badge badge-danger'>$ ${item.valorConsultaAdicionalRucs}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Consulta Adicional Cédulas: </b> <span class='badge badge-danger'>$ ${item.valorConsultaAdicionalCedulas}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Mensual RUCs: </b> <span class='badge badge-info'>$ ${item.valorMensualRuc}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Mensual Cédulas: </b> <span class='badge badge-info'>$ ${item.valorMensualCedula}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Anual RUCs: </b> <span class='badge badge-primary'>$ ${item.valorAnualRuc}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Anual Cédulas: </b> <span class='badge badge-primary'>$ ${item.valorAnualCedula}</span> <br/>`;
+                                    } else {
+                                        htmlPopover += `<b>Valor por Consulta: </b> <span class='badge badge-success'>$ ${item.valorPorConsulta}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Consulta Adicional: </b> <span class='badge badge-danger'>$ ${item.valorConsultaAdicional}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Mensual: </b> <span class='badge badge-info'>$ ${item.valorPlanMensual}</span> <br/>`;
+                                        htmlPopover += `<b>Valor Anual: </b> <span class='badge badge-primary'>$ ${item.valorPlanAnual}</span> <br/>`;
+                                    }
+
+                                    html += `<span><i class="fa-solid fa-circle-check text-success"></i></span> ${item.nombrePlan} <a href="#" data-toggle="popover" title="Detalle de Plan" tabindex="0" data-mdb-toggle="popover" data-mdb-trigger="focus" data-mdb-content="${htmlPopover}"><i class="fa-solid fa-message text-primary"></i></a><br/>`
+                                } else
+                                    html += `<span><i class="fa-solid fa-circle-check text-success"></i></span> ${item.nombrePlan} <br/>`
+                            });
+                        }
+
+                    if (data.planesBuroCredito)
+                        if (data.planesBuroCredito.length > 0) {
+                            $.each(data.planesBuroCredito, function (index, item) {
+                                if (detalleConsultas === 1) {
+                                    let htmlPopoverBuro = "";
+                                    htmlPopoverBuro += `<b>Fuente: </b>  ${(item.fuente)} <br/>`;
+                                    htmlPopoverBuro += `<b>Num. Consultas: </b>  ${(!item.maximoNumeroConsultas ? item.numeroMaximoConsultas : "MAX")} <br/>`;
+                                    htmlPopoverBuro += `<b>Días de consulta caché: </b>  ${item.persistenciaCache} <br/>`;
+                                    htmlPopoverBuro += `<b>Fecha Inicio: </b>  ${item.fechaInicioPlan} <br/>`;
+                                    htmlPopoverBuro += `<b>Fecha Fin: </b>  ${item.fechaFinPlan} <br/>`;
+                                    htmlPopoverBuro += `<b>Fecha de Cobro Mensual: </b>  ${item.fechaCobroRecurrente} <br/>`;
+                                    htmlPopoverBuro += `<b>Valor por Consulta: </b> <span class='badge badge-success'>$ ${item.valorConsulta}</span> <br/>`;
+                                    html += `<span><i class="fa-solid fa-circle-check text-success"></i></span> @(Dominio.Constantes.PlanesBuroCredito.PlanBuroCreditoMensaje) <a href="#" data-toggle="popover" title="Detalle de Plan" tabindex="0" data-mdb-toggle="popover" data-mdb-trigger="focus" data-mdb-content="${htmlPopoverBuro}"><i class="fa-solid fa-message text-primary"></i></a><br/>`
+                                } else
+                                    html += `<span><i class="fa-solid fa-circle-check text-success"></i></span> @(Dominio.Constantes.PlanesBuroCredito.PlanBuroCreditoMensaje) <br/>`
+                            });
+                        }
+
+                    if (data.planesEvaluaciones)
+                        if (data.planesEvaluaciones.length > 0) {
+                            $.each(data.planesEvaluaciones, function (index, item) {
+                                if (detalleConsultas === 1) {
+                                    let htmlPopoverEvaluaciones = "";
+                                    htmlPopoverEvaluaciones += `<b>Num. Consultas: </b>  ${(!item.maximoNumeroConsultas ? item.numeroMaximoConsultas : "MAX")} <br/>`;
+                                    htmlPopoverEvaluaciones += `<b>Fecha Inicio: </b>  ${item.fechaInicioPlan} <br/>`;
+                                    htmlPopoverEvaluaciones += `<b>Fecha Fin: </b>  ${item.fechaFinPlan} <br/>`;
+                                    htmlPopoverEvaluaciones += `<b>Fecha de Cobro Mensual: </b>  ${item.fechaCobroRecurrente} <br/>`;
+                                    htmlPopoverEvaluaciones += `<b>Valor por Consulta: </b> <span class='badge badge-success'>$ ${item.valorConsulta}</span> <br/>`;
+                                    htmlPopoverEvaluaciones += `<b>Valor por Consulta Adicional: </b> <span class='badge badge-danger'>$ ${item.valorConsultaAdicional}</span> <br/>`;
+                                    html += `<span><i class="fa-solid fa-circle-check text-success"></i></span> @(Dominio.Constantes.PlanesEvaluacion.PlanEvaluacionesMensaje) <a href="#" data-toggle="popover" title="Detalle de Plan" tabindex="0" data-mdb-toggle="popover" data-mdb-trigger="focus" data-mdb-content="${htmlPopoverEvaluaciones}"><i class="fa-solid fa-message text-primary"></i></a><br/>`
+                                } else
+                                    html += `<span><i class="fa-solid fa-circle-check text-success"></i></span> @(Dominio.Constantes.PlanesEvaluacion.PlanEvaluacionesMensaje) <br/>`
+                            });
+                        }
+
+                    if (data.consultasRealizadasEmpresa)
+                        if (data.consultasRealizadasEmpresa.length > 0)
+                            html += `<hr class="mt-1 mb-1"/>`;
+
+                    html += "<div class='row'>";
+                    if (data.consultasRealizadasEmpresa)
+                        if (data.consultasRealizadasEmpresa.length > 0) {
+                            html += "<div class='col'>";
+                            html += `<b>Consultas Realizadas (General): </b><br/>`;
+                            $.each(data.consultasRealizadasEmpresa, function (index, item) {
+                                let badgePlanEmpresaRuc = "success";
+                                let badgePlanEmpresaCedula = "success";
+                                let iconPlanEmpresaRuc = "<i class='fa-solid fa-shield text-success'></i>";
+                                let iconPlanEmpresaCedula = "<i class='fa-solid fa-shield text-success'></i>";
+                                let textoPlanEmpresaRuc = "Dentro del límite de consultas RUCs";
+                                let textoPlanEmpresaCedula = "Dentro del límite de consultas Cédulas";
+                                let planEmpresa = data.planes.find(x => parseInt(x.idPlanEmpresa) === parseInt(item.idPlanEmpresa));
+                                if (planEmpresa) {
+                                    if (!planEmpresa.esUnificado) {
+                                        if (item.numeroConsultasRucs > planEmpresa.numeroConsultasRuc) {
+                                            badgePlanEmpresaRuc = "danger";
+                                            iconPlanEmpresaRuc = "<i class='fa-solid fa-triangle-exclamation text-danger'></i>";
+                                            textoPlanEmpresaRuc = "Límite de consultas excedido RUCs";
+                                        }
+                                        if (item.numeroConsultasRucs === planEmpresa.numeroConsultasRuc) {
+                                            badgePlanEmpresaRuc = "warning";
+                                            iconPlanEmpresaRuc = "<i class='fas fa-exclamation-circle text-warning'></i>";
+                                            textoPlanEmpresaRuc = "Límite de consultas alcanzado RUCs";
+                                        }
+                                        if (item.numeroConsultasCedula > planEmpresa.numeroConsultasCedula) {
+                                            badgePlanEmpresaCedula = "danger";
+                                            iconPlanEmpresaCedula = "<i class='fa-solid fa-triangle-exclamation text-danger'></i>";
+                                            textoPlanEmpresaCedula = "Límite de consultas excedido Cédulas";
+                                        }
+                                        if (item.numeroConsultasCedula === planEmpresa.numeroConsultasCedula) {
+                                            badgePlanEmpresaCedula = "warning";
+                                            iconPlanEmpresaCedula = "<i class='fas fa-exclamation-circle text-warning'></i>";
+                                            textoPlanEmpresaCedula = "Límite de consultas alcanzado Cédulas";
+                                        }
+                                        html += `RUCS (Jurídicos y Naturales): <b class="text-${badgePlanEmpresaRuc}">${item.numeroConsultasRucs} consultas</b> <span data-tippy-content="${textoPlanEmpresaRuc}" class="text-${badgePlanEmpresaRuc}">${iconPlanEmpresaRuc}</span><br/>`
+                                        html += `Cédulas: <b class="text-${badgePlanEmpresaCedula}">${item.numeroConsultasCedula} consultas</b> <span data-tippy-content="${textoPlanEmpresaCedula}" class="text-${badgePlanEmpresaCedula}">${iconPlanEmpresaCedula}</span><br/>`
+                                    } else {
+                                        if (item.numeroConsultas > planEmpresa.numeroConsultas) {
+                                            badgePlanEmpresaRuc = "danger";
+                                            iconPlanEmpresaRuc = "<i class='fa-solid fa-triangle-exclamation text-danger'></i>";
+                                            textoPlanEmpresaRuc = "Límite de consultas excedido";
+                                        }
+                                        if (item.numeroConsultas === planEmpresa.numeroConsultas) {
+                                            badgePlanEmpresaRuc = "warning";
+                                            iconPlanEmpresaRuc = "<i class='fas fa-exclamation-circle text-warning'></i>";
+                                            textoPlanEmpresaRuc = "Límite de consultas alcanzado";
+                                        }
+                                        html += `Cédulas y RUCs: <b class="text-${badgePlanEmpresaRuc}">${(item.numeroConsultas ? item.numeroConsultas : 0)} consultas</b> <span data-tippy-content="${textoPlanEmpresaRuc}" class="text-${badgePlanEmpresaRuc}">${iconPlanEmpresaRuc}</span><br/>`
+                                    }
+                                }
+                            });
+                            html += "</div>";
+                        }
+
+                    if (data.consultasRealizadasUsuario)
+                        if (data.consultasRealizadasUsuario.length > 0) {
+                            html += "<div class='col'>";
+                            html += `<b>Consultas Realizadas (Usuario Actual): </b><br/>`;
+                            $.each(data.consultasRealizadasUsuario, function (index, item) {
+                                let planEmpresa = data.planes.find(x => parseInt(x.idPlanEmpresa) === parseInt(item.idPlanEmpresa));
+                                if (planEmpresa) {
+                                    if (!planEmpresa.esUnificado) {
+                                        html += `RUCS (Jurídicos y Naturales): <b>${item.numeroConsultasRucs}</b> consultas. <br/>`
+                                        html += `Cédulas: <b>${item.numeroConsultasCedula}</b> consultas. <br/>`
+                                    } else {
+                                        html += `Cédulas y RUCs: <b>${(item.numeroConsultas ? item.numeroConsultas : 0)}</b> consultas. <br/>`
+                                    }
+                                }
+                            });
+                            html += "</div>";
+                        }
+                    html += "</div>";
+
+                    if (data.consultasRealizadasBuroEmpresa)
+                        if (data.consultasRealizadasBuroEmpresa.length > 0)
+                            html += `<hr class="mt-1 mb-1"/>`;
+
+                    html += "<div class='row'>";
+                    if (data.consultasRealizadasBuroEmpresa)
+                        if (data.consultasRealizadasBuroEmpresa.length > 0) {
+                            html += "<div class='col'>";
+                            html += `<b>Consultas Realizadas Buró de Crédito (General): </b><br/>`;
+                            $.each(data.consultasRealizadasBuroEmpresa, function (index, item) {
+                                let badgePlanBuroEmpresa = "success";
+                                let iconPlanBuroEmpresa = "<i class='fa-solid fa-shield text-success'></i>";
+                                let textoPlanBuroEmpresa = "Dentro del límite de consultas de Buró de Crédito";
+                                let planBuroEmpresa = data.planesBuroCredito.find(x => parseInt(x.idPlanBuroCredito) === parseInt(item.idPlanBuroCredito));
+                                if (planBuroEmpresa) {
+                                    if (item.numeroConsultas > planBuroEmpresa.numeroMaximoConsultas) {
+                                        badgePlanBuroEmpresa = "danger";
+                                        iconPlanBuroEmpresa = "<i class='fa-solid fa-triangle-exclamation text-danger'></i>";
+                                        textoPlanBuroEmpresa = "Límite de consultas excedido en el Buró de Crédito";
+                                    }
+                                    if (item.numeroConsultas == planBuroEmpresa.numeroMaximoConsultas) {
+                                        badgePlanBuroEmpresa = "warning";
+                                        iconPlanBuroEmpresa = "<i class='fas fa-exclamation-circle text-warning'></i>";
+                                        textoPlanBuroEmpresa = "Límite de consultas alcanzado en el Buró de Crédito";
+                                    }
+                                    html += `RUCS y Cédulas: <b class="text-${badgePlanBuroEmpresa}">${item.numeroConsultas} consultas</b> <span data-tippy-content="${textoPlanBuroEmpresa}" class="text-${badgePlanBuroEmpresa}">${iconPlanBuroEmpresa}</span><br/>`
+                                }
+                            });
+                            html += "</div>";
+                        }
+
+                    if (data.consultasRealizadasBuroUsuario)
+                        if (data.consultasRealizadasBuroUsuario.length > 0) {
+                            html += "<div class='col'>";
+                            html += `<b>Consultas Realizadas Buró de Crédito (Usuario Actual): </b><br/>`;
+                            $.each(data.consultasRealizadasBuroUsuario, function (index, item) {
+                                let planBuro = data.planesBuroCredito.find(x => parseInt(x.idPlanBuroCredito) === parseInt(item.idPlanBuroCredito));
+                                if (planBuro) {
+                                    html += `RUCS y Cédulas: <b>${item.numeroConsultas}</b> consultas. <br/>`
+                                }
+                            });
+                            html += "</div>";
+                        }
+                    html += "</div>";
+
+                    //RESUMEN CONSULTAS EVALUCIONES
+                    if (data.consultasRealizadasEvaluacionesEmpresa)
+                        if (data.consultasRealizadasEvaluacionesEmpresa.length > 0)
+                            html += `<hr class="mt-1 mb-1"/>`;
+
+                    html += "<div class='row'>";
+                    if (data.consultasRealizadasEvaluacionesEmpresa)
+                        if (data.consultasRealizadasEvaluacionesEmpresa.length > 0) {
+                            html += "<div class='col'>";
+                            html += `<b>Consultas Realizadas Evaluaciones (General): </b><br/>`;
+                            $.each(data.consultasRealizadasEvaluacionesEmpresa, function (index, item) {
+                                let badgePlanEvaluacionesEmpresa = "success";
+                                let iconPlanEvaluacionesEmpresa = "<i class='fa-solid fa-shield text-success'></i>";
+                                let textoPlanEvaluacionesEmpresa = "Dentro del límite de consultas de Evaluaciones";
+                                let planEvaluacionesEmpresa = data.planesEvaluaciones.find(x => parseInt(x.idPlanEvaluaciones) === parseInt(item.idPlanEvaluaciones));
+                                if (planEvaluacionesEmpresa) {
+                                    if (item.numeroConsultas > planEvaluacionesEmpresa.numeroMaximoConsultas) {
+                                        badgePlanEvaluacionesEmpresa = "danger";
+                                        iconPlanEvaluacionesEmpresa = "<i class='fa-solid fa-triangle-exclamation text-danger'></i>";
+                                        textoPlanEvaluacionesEmpresa = "Límite de consultas excedido en Evaluaciones";
+                                    }
+                                    if (item.numeroConsultas === planEvaluacionesEmpresa.numeroMaximoConsultas) {
+                                        badgePlanEvaluacionesEmpresa = "warning";
+                                        iconPlanEvaluacionesEmpresa = "<i class='fas fa-exclamation-circle text-warning'></i>";
+                                        textoPlanEvaluacionesEmpresa = "Límite de consultas alcanzado en Evaluaciones";
+                                    }
+                                    html += `RUCS y Cédulas: <b class="text-${badgePlanEvaluacionesEmpresa}">${item.numeroConsultas} consultas</b> <span data-tippy-content="${textoPlanEvaluacionesEmpresa}" class="text-${badgePlanEvaluacionesEmpresa}">${iconPlanEvaluacionesEmpresa}</span><br/>`
+                                }
+                            });
+                            html += "</div>";
+                        }
+
+                    if (data.consultasRealizadasEvaluacionesUsuario)
+                        if (data.consultasRealizadasEvaluacionesUsuario.length > 0) {
+                            html += "<div class='col'>";
+                            html += `<b>Consultas Realizadas Evaluaciones (Usuario Actual): </b><br/>`;
+                            $.each(data.consultasRealizadasEvaluacionesUsuario, function (index, item) {
+                                let planEvaluaciones = data.planesEvaluaciones.find(x => parseInt(x.idPlanEvaluaciones) === parseInt(item.idPlanEvaluaciones));
+                                if (planEvaluaciones) {
+                                    html += `RUCS y Cédulas: <b>${item.numeroConsultas}</b> consultas. <br/>`
+                                }
+                            });
+                            html += "</div>";
+                        }
+                    html += "</div>";
+                    //FIN RESUMEN CONSULTAS EVALUCIONES
+
+                    $("#divResumenConsultas").html(html);
+                    tippy('[data-tippy-content]', { placement: 'bottom', arrow: false });
+
+                    $(function () {
+                        $('[data-toggle="popover"]').popover({
+                            html: true
+                        })
+                    })
+                },
+                error: function (error) {
+                    $("#divResumenConsultas").html("");
+                    console.log(error);
+                }
+            });
+        }
+
+    </script>
+}

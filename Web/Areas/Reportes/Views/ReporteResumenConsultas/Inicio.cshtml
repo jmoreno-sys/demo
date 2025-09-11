@@ -1,0 +1,396 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Persistencia.Repositorios.Balance
+@inject UserManager<Dominio.Entidades.Identidad.Usuario> userManager
+@inject SignInManager<Dominio.Entidades.Identidad.Usuario> signInManager
+@inject IEmpresas Empresas
+@{
+    ViewData["Title"] = "Reporte Resumen";
+    var urlConsulta = @Url.Action(ViewBag.Asesores == 0 || ViewBag.Asesores == null ? "ListadoReporte" : "ListadoReporteAsesores", "ReporteResumenConsultas", new { Area = "Reportes" });
+    if (ViewBag.AdministradorCliente != null && ViewBag.AdministradorCliente == 1)
+        urlConsulta = @Url.Action("ListadoReporteCliente", "ReporteResumenClientes", new { Area = "Reportes" });
+}
+
+<section id="content">
+    <div class="container-fluid px-xl-5 px-lg-5 px-md-1 px-sm-0">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb purple lighten-4">
+                        <li class="breadcrumb-item"><a asp-area="Consultas" asp-controller="Principal" asp-action="Inicio">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Reporte Resumen</li>
+                    </ol>
+                </nav>
+                <div class="card">
+                    <div class="card-body pb-0 pt-0">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6 col-sm-12 pl-0 mb-2 mt-2">
+                                <div class="input-group h-100">
+                                    <div class="input-group-prepend" data-tippy-content="Mes">
+                                        <div class="input-group-text h-100"><i class="far fa-calendar"></i></div>
+                                    </div>
+                                    <input id="inputFechaMeses" type="text" class="form-control form-control datepicker h-100" data-provide="datepicker" data-date-format="dd/mm/yyyy" autocomplete="off" maxlength="10" />
+                                </div>
+                            </div>
+                            <div class="col-lg-9 col-md-6 col-sm-12 d-flex justify-content-end mb-2 mt-2 px-lg-0">
+                                <button type="submit" class="btn btn-primary-custom mr-1 d-inline-flex" id="btnBuscarHistorial"><i class="fa-solid fa-magnifying-glass my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Buscar</span></button>
+                                <button type="submit" class="btn btnDescargarHistorial btn-success d-inline-flex"><i class="fas fa-file-export my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Descargar</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pt-1">
+        <div class="col">
+            <div class="card">
+                <div class="card-body p-1">
+                    <table id="tablaReporte" class="table table-sm table-bordered table-hover table-striped w-100">
+                        <thead class="text-center">
+                            <tr>
+                                <th>Identificación</th>
+                                <th>Razón social</th>
+                                <th class="no-export text-center">Nombre Empresa</th>
+                                @* <th>Numero Máximo Consultas RUC</th>
+                                <th>Consultas Actuales Mensuales RUC</th>
+                                <th>Saldo RUC</th>
+                                <th>Numero Máximo Consultas Cédula</th>
+                                <th>Consultas Actuales Mensuales Cédula</th>
+                                <th>Saldo Cédula</th> *@
+                                <th>Plan Demo</th>
+                                <th>Plan Consultas</th>
+                                <th>Consultas Actuales Mensuales</th>
+                                <th>Saldo</th>
+                                @* <th class="text-center">Valor Adicional Consulta RUC</th>
+                                <th class="text-center">Valor Adicional Consulta Cédula</th> *@
+                                <th class="text-center">Valor Adicional Consulta</th>
+                                <th>Plan Consultas Buró Crédito</th>
+                                <th>Consultas Actuales Mensuales Buró de Crédito</th>
+                                <th>Saldo Buró Credito</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--Componentes-->
+<partial name="Components/_Datepicker" />
+<partial name="Components/_Datatables" />
+<partial name="Components/_Loader" />
+
+@section Scripts{
+    <script>
+        let swCarga = false;
+        let tablaReporte;
+        let fechaMesesReporte;
+        $(document).ready(function () {
+            $('.datepicker').datepicker({
+                language: 'es',
+                format: "mm/yyyy",
+                viewMode: "months",
+                minViewMode: "months",
+                todayBtn: "linked",
+                todayHighlight: true,
+                autoclose: true,
+                endDate: "today"
+            }).datepicker("setDate", 'now');
+            $('#inputFechaMeses').datepicker('setDate', 'now');
+
+            let config = {
+                id: "tablaReporte",
+                dom: "ftipr",
+                ajax: {
+                    url: '@urlConsulta',
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: function(d) {
+                        let filtros = new Object();
+                        let fechaDesdeHistorial = $('#inputFechaMeses').datepicker("getDate");
+                        let fechaHastaHistorial = $('#inputFechaMeses').datepicker("getDate");
+                        filtros.fechaDesde = fechaDesdeHistorial;
+                        filtros.fechaHasta = fechaHastaHistorial;
+                        filtros.meses = true;
+                        fechaMesesReporte = fechaHastaHistorial;
+                        return JSON.stringify(filtros);
+                    },
+                    dataSrc: function(e) {                         
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    { visible: false, data: 'identificacion' },
+                    { visible: false, data: 'razonSocial' },
+                    {
+                        width: '28%', data: 'razonSocial', className: 'text-left',
+                        render: function (data, type, row, meta) {
+                            let spanDemo = '';
+
+                            if (row.planDemo)
+                                spanDemo = `<span class="text-center badge badge-info span-demo">Plan Demo</span>`;
+
+                            return `${row.razonSocial} <p class="mt-0 pt-0 pb-0 mb-0 text-muted"><i>${row.identificacion}</i> ${spanDemo} </p>`;
+                        }
+                    },
+                    // {
+                    //     width: '5%', data: 'numeroMaximoConsultasRuc',
+                    //     render: function (data, type, row) {
+                    //         if (row.esUnificado)
+                    //             return "N/A";
+
+                    //         return row.esValorMaximoRuc ? `MAX` : data;
+                    //     }
+                    // },
+                    // { 
+                    //     width: '5%', data: 'consultasActualesMensualesRuc',
+                    //     render: function (data, type, row) {
+                    //         if (row.esUnificado)
+                    //             return "N/A";
+
+                    //         return data;
+                    //     }
+                    // },
+                    // {
+                    //     width: '5%', data: 'saldoRuc',
+                    //     render: function (data, type, row) {
+                    //         if (row.esUnificado)
+                    //             return "N/A";
+
+                    //         if (row.esValorMaximoRuc) 
+                    //             return `N/A <span data-tippy-content="Límite de consultas máximo" class="text-success"><i class="fas fa-check-circle"></i></span>`;
+                    //         else {
+                    //             let tippyContentLimite = 'Dentro del límite de consultas';
+                    //             let iconLimite = 'check-circle';
+                    //             let classLimite = 'success';
+
+                    //             if (data > 0){
+                    //                 tippyContentLimite = 'Dentro del límite de consultas';
+                    //                 iconLimite = 'check-circle';
+                    //                 classLimite = 'success';
+                    //             } else if (data === 0) {
+                    //                 tippyContentLimite = 'Límite de consultas alcanzado';
+                    //                 iconLimite = 'exclamation-circle';
+                    //                 classLimite = 'warning';
+                    //             } else {
+                    //                 tippyContentLimite = 'Límite de consultas excedido';
+                    //                 iconLimite = 'triangle-exclamation';
+                    //                 classLimite = 'danger';
+                    //             }
+                    //             return `${data} <span data-tippy-content="${tippyContentLimite}" class="text-${classLimite}"><i class="fas fa-${iconLimite}"></i></span>`;
+                    //         }
+                    //     }
+                    // },
+                    // {
+                    //     width: '5%', data: 'numeroMaximoConsultasCedula',
+                    //     render: function (data, type, row) {
+                    //         if (row.esUnificado)
+                    //             return "N/A";
+
+                    //         return row.esValorMaximoCedula ? `MAX` : data;
+                    //     }
+                    // },
+                    // { 
+                    //     width: '5%', data: 'consultasActualesMensualesCedula', 
+                    //     render: function (data, type, row) {
+                    //         if (row.esUnificado)
+                    //             return "N/A";
+
+                    //         return data;
+                    //     }
+                    // },
+                    // {
+                    //     width: '5%', data: 'saldoCedula',
+                    //     render: function (data, type, row) {
+                    //         if (row.esUnificado)
+                    //             return "N/A";
+
+                    //         if (row.esValorMaximoRuc) 
+                    //             return `N/A <span data-tippy-content="Límite de consultas máximo" class="text-success"><i class="fas fa-check-circle"></i></span>`;
+                    //         else {
+                    //             let tippyContentLimite = 'Dentro del límite de consultas';
+                    //             let iconLimite = 'check-circle';
+                    //             let classLimite = 'success';
+
+                    //             if (data > 0) {
+                    //                 tippyContentLimite = 'Dentro del límite de consultas';
+                    //                 iconLimite = 'check-circle';
+                    //                 classLimite = 'success';
+                    //             } else if (data === 0) {
+                    //                 tippyContentLimite = 'Límite de consultas alcanzado';
+                    //                 iconLimite = 'exclamation-circle';
+                    //                 classLimite = 'warning';
+                    //             } else {
+                    //                 tippyContentLimite = 'Límite de consultas excedido';
+                    //                 iconLimite = 'triangle-exclamation';
+                    //                 classLimite = 'danger';
+                    //             }
+                    //             return `${data} <span data-tippy-content="${tippyContentLimite}" class="text-${classLimite}"><i class="fas fa-${iconLimite}"></i></span>`;
+                    //         }
+                    //     }
+                    // },                    
+                    {
+                        width: '2%', data: 'planDemo',
+                        render: function (data, type, row) {
+                            return data ? "SI" : "NO";
+                        }
+                    },
+                    {
+                        width: '10%', data: 'numeroMaximoConsultas',
+                        render: function (data, type, row) {
+                            if (!row.esUnificado)
+                                return "N/A";
+
+                            return row.esValorMaximo ? `MAX` : data;
+                        }
+                    },
+                    { 
+                        width: '10%', data: 'consultasActualesMensuales', 
+                        render: function (data, type, row) {
+                            if (!row.esUnificado)
+                                return "N/A";
+
+                            return data;
+                        }
+                    },
+                    {
+                        width: '10%', data: 'saldo',
+                        render: function (data, type, row) {
+                            if (!row.esUnificado)
+                                return "N/A";
+
+                            if (row.esValorMaximo)
+                                return `N/A <span data-tippy-content="Límite de consultas máximo" class="text-success"><i class="fas fa-check-circle"></i></span>`;
+                            else {
+                                let tippyContentLimite = 'Dentro del límite de consultas';
+                                let iconLimite = 'check-circle';
+                                let classLimite = 'success';
+
+                                if (data > 0) {
+                                    tippyContentLimite = 'Dentro del límite de consultas';
+                                    iconLimite = 'check-circle';
+                                    classLimite = 'success';
+                                } else if (data === 0) {
+                                    tippyContentLimite = 'Límite de consultas alcanzado';
+                                    iconLimite = 'exclamation-circle';
+                                    classLimite = 'warning';
+                                } else {
+                                    tippyContentLimite = 'Límite de consultas excedido';
+                                    iconLimite = 'triangle-exclamation';
+                                    classLimite = 'danger';
+                                }
+                                return `${data} <span data-tippy-content="${tippyContentLimite}" class="text-${classLimite}"><i class="fas fa-${iconLimite}"></i></span>`;
+                            }
+                        }
+                    },
+                    // {
+                    //     width: '5%', data: 'valorAdicionalRuc', className: 'text-right',
+                    //     render: function (data, type, row) {
+                    //         if (row.esUnificado)
+                    //             return "N/A";
+
+                    //         return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                    //     }
+                    // },
+                    // {
+                    //     width: '5%', data: 'valorAdicionalCedula', className: 'text-right',
+                    //     render: function (data, type, row) {
+                    //         if (row.esUnificado)
+                    //             return "N/A";
+
+                    //         return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                    //     }
+                    // },
+                    {
+                        width: '10%', data: 'valorAdicional', className: 'text-right',
+                        render: function (data, type, row) {
+                            if (!row.esUnificado)
+                                return "N/A";
+
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    {
+                        width: '10%', data: 'numeroMaximoConsultasBuro',
+                        render: function (data, type, row) {
+                            return row.esValorMaximoBuro ? `MAX` : data;
+                        }
+                    },
+                    { width: '10%', data: 'consultasActualesBuro' },
+                    {
+                        width: '10%', data: 'saldoBuro',
+                        render: function (data, type, row) {
+                            if (row.esValorMaximoBuro) 
+                                return `N/A <span data-tippy-content="Límite de consultas máximo" class="text-success"><i class="fas fa-check-circle"></i></span>`;
+                            else {
+                                let tippyContentLimite = 'Dentro del límite de consultas';
+                                let iconLimite = 'check-circle';
+                                let classLimite = 'success';
+
+                                if (data === 0 && row.numeroMaximoConsultasBuro === 0)
+                                    return 'N/A';
+
+                                if (data > 0) {
+                                    tippyContentLimite = 'Dentro del límite de consultas';
+                                    iconLimite = 'check-circle';
+                                    classLimite = 'success';
+                                } else {
+                                    tippyContentLimite = 'Límite de consultas alcanzado';
+                                    iconLimite = 'triangle-exclamation';
+                                    classLimite = 'danger';
+                                }
+                                return `<span class="text-${classLimite}">${data}</span> <span data-tippy-content="${tippyContentLimite}" class="text-${classLimite}"><i class="fas fa-${iconLimite}"></i></span>`;
+                            }
+                        }
+                    }
+                ],
+                buttons: [                    
+                    {
+                        extend: "excelHtml5", sheetName: "Resumen", autoFilter: true,
+                        filename: function(){
+                            return `ReporteResumenConsultas_${fechaMesesReporte.getFullYear()}-${('0' + (fechaMesesReporte.getMonth() + 1)).slice(-2)}`;
+                        },
+                        exportOptions: {
+                            columns: ':not(.no-export)'
+                        },
+                        action: function(e, dt, button, config) {
+                            initLoadingSwal();
+                            let currentTable = this;
+                            setTimeout(function() {
+                                $.fn.dataTable.ext.buttons.excelHtml5.action.call(currentTable, e, dt, button, config);
+                            }, 1000);
+                        }
+                    }
+                ],
+                columnFilter: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                initComplete: function(e) {
+                    $('#tablaReporte').wrap("<div class='scrolledTable'></div>");
+                    hideLoader();
+                },
+                drawCallback: function (e) {
+                    tippy('[data-tippy-content]');
+                },
+                pageLength: 20,
+                order: []
+            };
+            tablaReporte = configDatatable(config);
+            
+            $("#btnBuscarHistorial").click(function() {
+                initLoadingSwal();
+                tablaReporte.ajax.reload();
+            });
+            
+            $(".btnDescargarHistorial").on("click", function() {
+                tablaReporte.button(0).trigger();
+            });
+        });
+    </script>
+}

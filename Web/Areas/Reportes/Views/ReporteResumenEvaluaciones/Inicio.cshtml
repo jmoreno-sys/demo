@@ -1,0 +1,236 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Persistencia.Repositorios.Balance
+@inject UserManager<Dominio.Entidades.Identidad.Usuario> userManager
+@inject SignInManager<Dominio.Entidades.Identidad.Usuario> signInManager
+@inject IEmpresas Empresas
+@{
+    ViewData["Title"] = "Reporte Evaluaciones";
+}
+
+<section id="content">
+    <div class="container-fluid px-xl-5 px-lg-5 px-md-1 px-sm-0">
+        <div class="row">
+            <div class="col">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb purple lighten-4">
+                        <li class="breadcrumb-item"><a asp-area="Consultas" asp-controller="Principal" asp-action="Inicio">Inicio</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Reporte Evaluaciones</li>
+                    </ol>
+                </nav>
+                <div class="card">
+                    <div class="card-body pb-0 pt-0">
+                        <div class="row">
+                            <div class="col-lg-3 col-md-6 col-sm-12 pl-0 mb-2 mt-2">
+                                <div class="input-group h-100">
+                                    <div class="input-group-prepend" data-tippy-content="Mes">
+                                        <div class="input-group-text h-100"><i class="far fa-calendar"></i></div>
+                                    </div>
+                                    <input id="inputFechaMeses" type="text" class="form-control form-control datepicker h-100" data-provide="datepicker" data-date-format="dd/mm/yyyy" autocomplete="off" maxlength="10" />
+                                </div>
+                            </div>
+                            <div class="col-lg-9 col-md-6 col-sm-12 d-flex justify-content-end mb-2 mt-2 px-lg-0">
+                                <button type="submit" class="btn btn-primary-custom mr-1 d-inline-flex" id="btnBuscarHistorial"><i class="fa-solid fa-magnifying-glass my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Buscar</span></button>
+                                <button type="submit" class="btn btnDescargarHistorial btn-success d-inline-flex"><i class="fas fa-file-export my-auto mr-1"></i><span class="d-none d-sm-none d-md-none d-lg-block">Descargar</span></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pt-1">
+        <div class="col">
+            <div class="card">
+                <div class="card-body p-1">
+                    <table id="tablaReporte" class="table table-sm table-bordered table-hover table-striped w-100">
+                        <thead class="text-center">
+                            <tr>
+                                <th class="text-center">Nombre Empresa</th>
+                                <th>Numero Máximo Consultas </th>
+                                <th>Consultas Actuales</th>
+                                <th>Saldo</th>
+                                <th class="text-center">Valor Consulta</th>
+                                <th class="text-center">Valor Total Consultas</th>
+                                <th>Consultas Adicionales Actuales</th>
+                                <th class="text-center">Valor Consulta Adicional</th>
+                                <th class="text-center">Valor Total Consultas Adicionales</th>
+                                <th class="text-center">Valor a Cancelar</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!--Componentes-->
+<partial name="Components/_Datepicker" />
+<partial name="Components/_Datatables" />
+
+<partial name="Components/_Loader" />
+
+@section Scripts{
+    <script>
+        let swCarga = false;
+        let tablaReporte;
+        let fechaMesesReporte;
+        $(document).ready(function () {
+            $('.datepicker').datepicker({
+                language: 'es',
+                format: "mm/yyyy",
+                viewMode: "months",
+                minViewMode: "months",
+                todayBtn: "linked",
+                todayHighlight: true,
+                autoclose: true,
+                endDate: "today"
+            }).datepicker("setDate", 'now');
+            $('#inputFechaMeses').datepicker('setDate', 'now');
+
+            let config = {
+                id: "tablaReporte",
+                dom: "ftipr",
+                ajax: {
+                    url: "@Url.Action("ListadoReporte", "ReporteResumenEvaluaciones", new { Area = "Reportes"})",
+                    method: 'POST',
+                    dataType: "json",
+                    contentType: "application/json",
+                    data: function(d) {
+                        let filtros = new Object();
+                        let fechaDesdeHistorial = $('#inputFechaMeses').datepicker("getDate");
+                        let fechaHastaHistorial = $('#inputFechaMeses').datepicker("getDate");
+                        filtros.fechaDesde = fechaDesdeHistorial;
+                        filtros.fechaHasta = fechaHastaHistorial;
+                        filtros.meses = true;
+                        fechaMesesReporte = fechaHastaHistorial;
+                        return JSON.stringify(filtros);
+                    },
+                    dataSrc: function(e) {
+                        Swal.close();
+                        return e;
+                    },
+                },
+                columns: [
+                    {
+                        width: '20%', data: 'datos.razonSocial', className: 'text-left',
+                        render: function (data, type, row, meta) {
+                            return `${data} <p class="mt-0 pt-0 pb-0 mb-0 text-muted"><i>${row.datos.identificacion}</i></p>`;
+                        }
+                    },
+                    {
+                        width: '10%', data: 'datos.numeroMaximoConsultas',
+                        render: function (data, type, row) {
+                            return row.datos.esValorMaximoRuc ? `MAX` : data;
+                        }
+                    },
+                    { width: '10%', data: 'datos.consultasActualesMensuales' },
+                    {
+                        width: '10%', data: 'datos.saldo',
+                        render: function (data, type, row) {
+                            if (row.datos.esValorMaximoRuc)
+                                return `N/A <span data-tippy-content="Límite de consultas máximo" class="text-success"><i class="fas fa-check-circle"></i></span>`;
+                            else {
+                                let tippyContentLimite = 'Dentro del límite de consultas';
+                                let iconLimite = 'check-circle';
+                                let classLimite = 'success';
+
+                                if (data > 0) {
+                                    tippyContentLimite = 'Dentro del límite de consultas';
+                                    iconLimite = 'check-circle';
+                                    classLimite = 'success';
+                                } else if (data === 0) {
+                                    tippyContentLimite = 'Límite de consultas alcanzado';
+                                    iconLimite = 'exclamation-circle';
+                                    classLimite = 'warning';
+                                } else {
+                                    tippyContentLimite = 'Límite de consultas excedido';
+                                    iconLimite = 'triangle-exclamation';
+                                    classLimite = 'danger';
+                                }
+                                return `${data} <span data-tippy-content="${tippyContentLimite}" class="text-${classLimite}"><i class="fas fa-${iconLimite}"></i></span>`;
+                            }
+                        }
+                    },
+                    {
+                        width: '10%', data: 'datos.valorConsulta', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    {
+                        width: '10%', data: 'datos.valorTotalConsultas', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    {
+                        width: '10%', data: 'datos.consultasAdicionalesMensuales'
+                    },
+                    {
+                        width: '10%', data: 'datos.valorAdicional', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    
+                    {
+                        width: '10%', data: 'datos.valorTotalConsultasAdicionales', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                    {
+                        width: '10%', data: 'valorTotal', className: 'text-right',
+                        render: function (data, type, row) {
+                            return $.fn.dataTable.render.number(',', '.', 2, '$ ').display(data);
+                        }
+                    },
+                ],
+                buttons: [
+                    {
+                        extend: "excelHtml5", sheetName: "Resumen", autoFilter: true,
+                        filename: function () {
+                            return `ReporteResumenEvaluaciones_${fechaMesesReporte.getFullYear()}-${('0' + (fechaMesesReporte.getMonth() + 1)).slice(-2)}`;
+                        },
+                        exportOptions: {
+                            columns: ':not(.no-export)'
+                        },
+                        action: function(e, dt, button, config) {
+                            initLoadingSwal();
+                            let currentTable = this;
+                            setTimeout(function() {
+                                $.fn.dataTable.ext.buttons.excelHtml5.action.call(currentTable, e, dt, button, config);
+                            }, 1000);
+                        }
+                    }
+                ],
+                columnFilter: true,
+                orderCellsTop: true,
+                fixedHeader: true,
+                searchable: false,
+                initComplete: function(e) {
+                    $('#tablaReporte').wrap("<div class='scrolledTable'></div>");
+                    hideLoader();
+                },
+                drawCallback: function (e) {
+                    tippy('[data-tippy-content]');
+                },
+                pageLength: 20,
+                order: []
+            };
+            tablaReporte = configDatatable(config);
+
+            $("#btnBuscarHistorial").click(function() {
+                initLoadingSwal();
+                tablaReporte.ajax.reload();
+            });
+
+            $(".btnDescargarHistorial").on("click", function() {
+                tablaReporte.button(0).trigger();
+            });
+        });
+    </script>
+}
